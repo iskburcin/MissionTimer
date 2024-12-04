@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Session Measure</title>
+    <link rel="stylesheet" href="/sessionMeasureDemo/styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- SESSOON SIDE -->
+      <div class="session-side">
+        <h2 id="selected-date">Selected Date</h2>
+        <hr />
+        <br />
+        <!-- Dropdown and Add Session -->
+        <div class="session-dropdown">
+          <select id="session-types">
+            <option value="" selected disabled>Session Type</option>
+          </select>
+          <button title="Add new session type" id="add-session-type-btn">
+            +
+          </button>
+        </div>
+
+        <!-- Session Details -->
+        <div id="session-details">
+          <h3 id="session-title">Session Type</h3>
+          <!-- <div id="session-info"></div> -->
+          <table class="session-log-table">
+            <thead>
+              <tr>
+                <th>Session</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody class="session-log-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="session-model" class="hidden">
+        <div class="session-content">
+          <h3>Add New Session Type</h3>
+          <form action="" id="new-session-form">
+            <div class="form-item">
+              <input
+                type="text"
+                id="session-name"
+                autocomplete="off"
+                required
+              />
+              <label for="session-name">Session Name:</label>
+            </div>
+            <div class="form-item">
+              <input type="number" id="check-duration" />
+              <label for="session-duration">Duration Check Interval:</label>
+            </div>
+            <div class="form-item">
+              <input type="number" id="min-duration" />
+              <label for="min-duration">Minimum Duration:</label>
+            </div>
+            <div class="form-item">
+              <input type="number" id="max-duration" />
+              <label for="max-duration">Maximum Duration:</label>
+            </div>
+            <button type="submit">Add Session</button>
+            <button type="button" id="close-model">Cancel</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- CALENDAR SIDE -->
+      <div class="calendar-side">
+        <div class="calendar">
+          <div class="calendar-header">
+            <button id="prev-month">&lt;</button>
+            <span id="month-year">Month Year</span>
+            <button id="next-month">&gt;</button>
+          </div>
+          <div class="calendar-body">
+            <div id="calendar-weekdays"></div>
+            <div id="calendar-days"></div>
+          </div>
+        </div>
+        <div class="session-types-summary">Session's Summary</div>
+      </div>
+    </div>
+  </body>
+  <script src="/sessionMeasureDemo/script.js"></script>
+</html>

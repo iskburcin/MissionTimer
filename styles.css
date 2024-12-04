@@ -1,0 +1,175 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    height: 100vh;
+    background-color: #f5f5f5;
+}
+
+#app {
+    width: 100%;
+    /* display: flex; */
+    display: grid;
+    grid-template-columns: 7fr 3fr;
+    grid-gap: 20px;
+}
+
+
+
+/** Calendar Styles **/
+.calendar-side {
+    padding: 20px;
+    /* display: flex; */
+    background-color: #ffffff;
+    box-shadow: 2px 0 4px rgba(73, 52, 52, 0.1);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#calendar-weekdays,
+#calendar-days {
+    margin: 5% 0;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    /* float: left; */
+}
+
+.weekday {
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #640000;
+    float: left;
+}
+
+.day {
+    text-align: center;
+    font-size: 14px;
+    color: #000000;
+    border: 2px solid #640000;
+    padding: 5px;
+    border-radius: 8px;
+}
+
+.day:hover {
+    background-color: #640000;
+    color: #ffffff;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.day.current-day {
+    background-color: #640000;
+    color: #ffffff;
+}
+
+/** Session Styles **/
+.session-side {
+    padding: 20px;
+    /* flex: 1; */
+}
+
+.session-dropdown {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#session-types {
+    padding: 5px;
+    font-size: 16px;
+}
+
+#session-details {
+    margin-top: 20px;
+}
+
+
+
+.hidden {
+    display: none;
+}
+
+
+/** Genneral Styles **/
+button {
+    font-size: 16px;
+    padding: 10px 15px;
+    margin: 10px 0px;
+    background-color: #640000;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #8c0000;
+}
+
+input {
+    font-size: 16px;
+    padding: 5px;
+    margin: 10px 0px;
+    width: 80%;
+    border: 2px solid #640000;
+    border-radius: 5px;
+}
+
+*,
+*:focus {
+    outline: none
+}
+
+
+.form-item {
+    position: relative;
+    margin-bottom: 15px
+}
+
+.form-item input {
+    display: block;
+    width: 400px;
+    height: 40px;
+    background: transparent;
+    border: solid 1px #ccc;
+    transition: all .3s ease;
+    padding: 0 15px
+}
+
+.form-item input:focus {
+    border-color: #640000
+}
+
+.form-item label {
+    position: absolute;
+    cursor: text;
+    z-index: 2;
+    top: 13px;
+    left: 10px;
+    font-size: 12px;
+    font-weight: bold;
+    background: #f5f5f5;
+    padding: 0 10px;
+    color: #999;
+    transition: all .3s ease
+}
+
+.form-item input:focus+label,
+.form-item input:valid+label {
+    font-size: 11px;
+    top: -5px
+}
+
+.form-item input:focus+label {
+    color: #640000;
+
+}
