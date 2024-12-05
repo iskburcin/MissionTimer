@@ -4,7 +4,7 @@ body {
     padding: 0;
     display: flex;
     height: 100vh;
-    background-color: #f5f5f5;
+    background: #bbbbbb;
 }
 
 #app {
@@ -21,7 +21,7 @@ body {
 .calendar-side {
     padding: 20px;
     /* display: flex; */
-    background-color: #ffffff;
+    background-color: #ffdddd;
     box-shadow: 2px 0 4px rgba(73, 52, 52, 0.1);
 }
 
@@ -55,7 +55,7 @@ body {
     color: #000000;
     border: 2px solid #640000;
     padding: 5px;
-    border-radius: 8px;
+    border-radius: 5px;
 }
 
 .day:hover {
@@ -74,18 +74,14 @@ body {
 .session-side {
     padding: 20px;
     /* flex: 1; */
+    position: relative;
 }
 
-.session-dropdown {
+.session-types {
     margin-top: 20px;
     display: flex;
     gap: 10px;
     align-items: center;
-}
-
-#session-types {
-    padding: 5px;
-    font-size: 16px;
 }
 
 #session-details {
@@ -93,35 +89,32 @@ body {
 }
 
 
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+/* .modal {
+    display: none;
+} */
 
 .hidden {
     display: none;
 }
 
-
-/** Genneral Styles **/
-button {
-    font-size: 16px;
-    padding: 10px 15px;
-    margin: 10px 0px;
-    background-color: #640000;
-    color: white;
-    border: none;
+.session-content {
+    background: white;
+    padding: 20px;
     border-radius: 5px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #8c0000;
-}
-
-input {
-    font-size: 16px;
-    padding: 5px;
-    margin: 10px 0px;
-    width: 80%;
-    border: 2px solid #640000;
-    border-radius: 5px;
+    width: auto;
 }
 
 *,
@@ -172,4 +165,79 @@ input {
 .form-item input:focus+label {
     color: #640000;
 
+}
+
+
+/** Genneral Styles **/
+select {
+    padding: 10px;
+    font-size: 14px;
+    border: 2px solid #bbbbbb;
+    border-radius: 5px;
+}
+
+button {
+    font-size: 16px;
+    padding: 10px 15px;
+    margin: 10px 0px;
+    background-color: #640000;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #8c0000;
+}
+
+input {
+    font-size: 16px;
+    padding: 5px;
+    margin: 10px 0px;
+    width: 80%;
+    border: 2px solid #640000;
+    border-radius: 5px;
+}
+
+*,
+*:before,
+*:after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+table {
+    background: #390101;
+    border-radius: 5px;
+    border-collapse: collapse;
+    margin: 1em;
+}
+
+th {
+    border-bottom: 1px solid #433636;
+    color: #E2B842;
+    font-size: 0.85em;
+    font-weight: 600;
+    padding: 0.5em 1em;
+    text-align: left;
+}
+
+td {
+    color: #fff;
+    font-weight: 400;
+    padding: 0.65em 1em;
+}
+
+.disabled td {
+    color: #4F5F64;
+}
+
+tbody tr {
+    transition: background 0.25s ease;
+}
+
+tbody tr:hover {
+    background: #551c1c;
 }
