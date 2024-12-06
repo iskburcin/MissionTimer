@@ -1,7 +1,6 @@
 // Constants
 const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 let activeDate = new Date();
-let sessionTypesByDate = loadSessionData() || {}; // Load from local storage or initialize empty object
 
 /** Helper Functions */
 function $(id) {
@@ -12,6 +11,7 @@ function saveSessionData() {
     localStorage.setItem("sessionTypesByDate", JSON.stringify(sessionTypesByDate));
 }
 
+let sessionTypesByDate = loadSessionData() || {}; // Load from local storage or initialize empty object
 function loadSessionData() {
     return JSON.parse(localStorage.getItem("sessionTypesByDate"));
 }
@@ -32,9 +32,6 @@ function renderWeekdays() {
         .join('');
 }
 
-/**
- * Render Calendar
-*/
 function renderCalendar(date) {
     const daysContainer = $("calendar-days");
     const monthYearLabel = $("month-year");
@@ -68,131 +65,11 @@ function renderCalendar(date) {
 function selectDate(day) {
     activeDate.setDate(day);
     $("selected-date").textContent = getDateKey(activeDate);
-    loadSessions();
-    renderSessions();
+    loadSessionsTypes();
 }
-
-/**
- * Render Sessions
-*/
-function loadSessions() {
-    const dropdown = $("session-dropdown");
-    const sessionDateKey = getDateKey(activeDate);
-    dropdown.innerHTML = '<option value="" disabled selected hidden>Select a session</option>';
-
-    // Correctly check for existence AND for a valid object with sessionTypes property
-    if (sessionTypesByDate &&
-        sessionTypesByDate[sessionDateKey] &&
-        sessionTypesByDate[sessionDateKey].sessionTypes &&
-        typeof sessionTypesByDate[sessionDateKey].sessionTypes === 'object') {
-
-        Object.keys(sessionTypesByDate[sessionDateKey].sessionTypes).forEach(sessionType => {
-            const option = document.createElement("option");
-            option.value = sessionType;
-            option.textContent = sessionType;
-            dropdown.appendChild(option);
-        });
-    } else {
-        // Handle the case where no sessions are available for the selected date
-        //  e.g., add a message to the dropdown, or disable it
-        console.warn(`No sessions found for date: ${sessionDateKey}`);
-        // Example: Add a "No sessions" option
-        const noSessionsOption = document.createElement("option");
-        noSessionsOption.value = "";
-        noSessionsOption.textContent = "No sessions available";
-        noSessionsOption.disabled = true; // Optional: disable selection
-        dropdown.appendChild(noSessionsOption);
-    }
-}
-function renderSessions() {
-    const selectedSessionType = $('session-title');
-    const sessionTable = $("session-log-table");
-    const sessionBody = $("session-log-body");
-    const dropdown = $("session-dropdown");
-    const txtCntnt = $("text");
-    const sessionDateKey = getDateKey(activeDate);
-    if (!sessionTypesByDate[sessionDateKey]) {
-        dropdown.classList.add("hidden");
-        txtCntnt.classList.remove("hidden");
-        txtCntnt.textContent = "Create a session type for today:";
-        sessionTable.classList.add('hidden');
-        return;
-    }
-    const selectedSession = dropdown.value;
-    if (!selectedSession) return;
-    const sessionData = sessionTypesByDate[sessionDateKey].sessionTypes[selectedSession];
-    if (!sessionData) return;
-
-    console.log("sessionData:", sessionData); // <-- Add this line
-    console.log("sessionData.sessions:", sessionData.sessions); // <-- And this one
-    console.log("typeof sessionData.sessions:", typeof sessionData.sessions); //Check the type
-
-
-    selectedSessionType.textContent = selectedSession;
-    sessionBody.innerHTML = sessionData.sessions
-        .map((session, index) => `
-            <tr>
-                <td>${index + 1}</td>
-                <td>${session.start}</td>
-                <td>${session.end || '-'}</td>
-                <td>${session.duration || '-'}</td>
-            </tr>
-        `).join('');
-    sessionBody.innerHTML += `
-        <tr id="last-row">
-            <td></td>
-            <td id="start-session">Start</td>
-            <td id="end-session" class="hidden">End</td>
-            <td>Total Time</td>
-        </tr>`;
-    sessionTable.classList.remove("hidden");
-}
-/** SESSION BUTTON SIDE */
-$("start-session").addEventListener("click", addNewSession);
-$("end-session").addEventListener("click", endSession);
-function endSession() {
-    const sessionDate = activeDate.toDateString();
-    const selectedSession = $("session-dropdown").value;
-    const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
-    const sessions = sessionData.sessions;
-    const lastSession = sessions[sessions.length - 1];
-    const now = new Date().toLocaleTimeString('en-US');
-    lastSession.end = now;
-    const start = new Date(`01/01/2007 ${lastSession.start}`);
-    const end = new Date(`01/01/2007 ${lastSession.end}`);
-    const duration = (end - start) / 1000 / 60;
-    lastSession.duration = duration.toFixed(2);
-    $("start-session").classList.remove('hidden');
-    $("end-session").textContent = now;
-    $("dur-session").textContent = lastSession.duration;
-    $("end-session").removeEventListener("click", endSession);
-    renderSessions();
-}
-
-
-function addNewSession() {
-    const sessionDate = activeDate.toDateString();
-    const selectedSession = $("session-dropdown").value;
-    if (!selectedSession) return;
-    const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
-    let sessions = sessionData.sessions;
-    const indx = sessions.length + 1;
-    const now = new Date().toLocaleTimeString('en-US');
-    sessions[indx] = {
-        start: now,
-        end: '',
-        duration: ''
-    };
-    $("indx").textContent = indx;
-    $("start-session").textContent = now;
-    $("start-session").removeEventListener("click", addNewSession);
-    $("end-session").classList.remove('hidden');
-}
-/** MODAL ADDING SİDE */
-
-const modal = $("session-model");
 
 function addSessionType() {
+    const modal = $("session-model");
     const dropdown = $("session-dropdown");
     const sessionDateKey = getDateKey(activeDate);
     const sessionName = $("session-name").value;
@@ -225,10 +102,173 @@ function addSessionType() {
     console.log("Session added");
     $("text").classList.add('hidden');
     dropdown.classList.remove("hidden");
-    saveSessionData();
-    loadSessions();
     modal.classList.add("hidden");
+    saveSessionData();
+    loadSessionsTypes();
 }
+
+/**
+ * Render Sessions
+*/
+function loadSessionsTypes() {
+    const selectedSessionType = $('session-title');
+    const sessionTable = $("session-log-table");
+    const dropdown = $("session-dropdown");
+    const txtCntnt = $("text");
+    const sessionDateKey = getDateKey(activeDate);
+    dropdown.innerHTML = '<option value="" disabled selected hidden>Select a session</option>';
+    const sessionData = loadSessionData()[sessionDateKey]?.sessionTypes || {};
+
+    // Correctly check for existence AND for a valid object with sessionTypes property
+    if (loadSessionData() && loadSessionData()[sessionDateKey] && sessionData && typeof sessionData === 'object') {
+
+        // Populate dropdown
+        Object.keys(sessionData).forEach(sessionType => {
+            const option = document.createElement("option");
+            option.value = sessionType;
+            option.textContent = sessionType;
+            dropdown.appendChild(option);
+        });
+        dropdown.classList.remove("hidden");
+        txtCntnt.classList.add("hidden");
+        // renderSessions();
+    } else {
+        console.warn(`No sessions found for date: ${sessionDateKey}`);
+        dropdown.classList.add("hidden");
+        txtCntnt.classList.remove("hidden");
+        txtCntnt.textContent = "Create a session type for today:";
+    }
+    sessionTable.classList.add('hidden');
+    selectedSessionType.textContent = '';
+}
+$("session-dropdown").addEventListener("change", renderSessions);
+function renderSessions() {
+    const selectedSessionType = $('session-title');
+    const sessionTable = $("session-log-table");
+    const sessionBody = $("session-log-body");
+    const dropdown = $("session-dropdown");
+    const txtCntnt = $("text");
+    const sessionDateKey = getDateKey(activeDate);
+    const dateData = loadSessionData()[sessionDateKey];
+    if (!loadSessionData() || !dateData || !dateData.sessionTypes) return;
+    const selectedSession = dropdown.value;
+    if (!selectedSession) return;
+    dropdown.classList.remove("hidden");
+    txtCntnt.classList.add("hidden");
+
+    if (selectedSession) {
+        if (dateData && dateData.sessionTypes && dateData.sessionTypes[selectedSession]) {
+            const sessionData = dateData.sessionTypes[selectedSession];
+
+            // Check for sessions property before accessing it
+            if (sessionData.sessions && Object.keys(sessionData.sessions).length > 0) {
+                console.log("sessionData:", sessionData);
+                for (let i = 0; i < sessionData.sessions.length; i++) {
+                    const session = sessionData.sessions[i];
+                    sessionBody.innerHTML += `
+                        <tr>
+                            <td>${i + 1}</td>
+                            <td>${session.start}</td>
+                            <td>${session.end}</td>
+                            <td>${session.duration}</td>
+                        </tr>`;
+                }
+                sessionBody.innerHTML += `
+                    <tr id="last-row">
+                        <td></td>
+                        <td id="start-session">Start</td>
+                        <td id="end-session" class="hidden">End</td>
+                        <td>Total Time</td>
+                    </tr>`;
+                sessionTable.classList.remove("hidden");
+            } else {
+                sessionTable.classList.remove('hidden');
+                selectedSessionType.textContent = selectedSession;
+                sessionBody.innerHTML = `
+                    <tr id="last-row">
+                        <td></td>
+                        <td id="start-session">Start</td>
+                        <td id="end-session" class="hidden">End</td>
+                        <td>Total Time</td>
+                    </tr>`;
+            }
+        } else {
+            console.error("Error: Invalid session type or missing session data.");
+            // Handle the error gracefully, e.g., display an error message to the user.
+            // Example:
+            // alert("Invalid session type selected. Please choose a valid option.");
+            // or
+            // const errorElement = document.getElementById("error-message");
+            // if (errorElement) {
+            //     errorElement.textContent = "Invalid session type selected.";
+            // }
+        }
+    } else {
+        console.log("Waiting for user to select a session type.");
+    }
+    // if (!sessionData.sessions || Object.keys(sessionData.sessions).length === 0) {
+    //     sessionTable.classList.remove('hidden');
+    //     selectedSessionType.textContent = selectedSession;
+    //     sessionBody.innerHTML = `
+    //         <tr id="last-row">
+    //             <td></td>
+    //             <td id="start-session">Start</td>
+    //             <td id="end-session" class="hidden">End</td>
+    //             <td>Total Time</td>
+    //         </tr>`;
+    //     return;
+    // } else {
+    //     console.log("sessionData:", sessionData);
+    // }
+    // selectedSessionType.textContent = selectedSession;
+
+}
+/** SESSION BUTTON SIDE */
+$("start-session").addEventListener("click", addNewSession);
+$("end-session").addEventListener("click", endSession);
+function addNewSession() {
+    const sessionDate = getDateKey(activeDate);
+    const selectedSession = $("session-dropdown").value;
+    const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
+    if (!selectedSession || !sessionData) return;
+    let sessions = sessionData.sessions;
+    const indx = sessions.length + 1;
+    const now = new Date().toLocaleTimeString('en-US');
+    sessions[indx].push({
+        start: now,
+        end: '',
+        duration: ''
+    });
+    $("indx").textContent = indx;
+    $("start-session").textContent = now;
+    $("start-session").removeEventListener("click", addNewSession);
+    $("end-session").classList.remove('hidden');
+    $("end-session").addEventListener("click", endSession);
+    saveSessionData();
+    renderSessions();
+}
+function endSession() {
+    const sessionDate = getDateKey(activeDate);
+    const selectedSession = $("session-dropdown").value;
+    const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
+    if (!selectedSession || !sessionData) return;
+    const lastSession = sessionData.sessions[sessions.length - 1];
+    const now = new Date().toLocaleTimeString('en-US');
+    lastSession.end = now;
+    const start = new Date(lastSession.start);
+    const end = new Date(lastSession.end);
+    lastSession.duration = Math.floor((endTime - startTime) / 1000 / 60); // Duration in minutes
+    $("start-session").classList.remove('hidden');
+    $("end-session").textContent = now;
+    $("dur-session").textContent = lastSession.duration;
+    $("end-session").removeEventListener("click", endSession);
+    saveSessionData();
+    renderSessions();
+}
+
+
+
+
 
 /** EVENT LISTENERS */
 $("add-session-type-btn").addEventListener("click", () => $("session-model").classList.remove("hidden"));
