@@ -69,6 +69,7 @@ function renderCalendar(date) {
 
 function selectDate(day) {
     activeDate.setDate(day);
+    renderCalendar(activeDate);
     $("selected-date").textContent = getDateKey(activeDate);
     loadSessionsTypes();
 }
@@ -76,12 +77,11 @@ function selectDate(day) {
 function addSessionType() {
     const modal = $("session-model");
     const dropdown = $("session-dropdown");
-    const sessionDateKey = new Date(getDateKey(activeDate));
+    const sessionDateKey = getDateKey(activeDate);
     const sessionName = $("session-name").value;
     const checkDuration = $("check-duration").value;
     const minDuration = $("min-duration").value;
     const maxDuration = $("max-duration").value;
-    debugger;
     console.log(sessionName, checkDuration, minDuration, maxDuration);
     if (!sessionName || !checkDuration || !minDuration || !maxDuration) {
         alert("Please fill all fields");
@@ -108,10 +108,7 @@ function addSessionType() {
     $("text").classList.add('hidden');
     dropdown.classList.remove("hidden");
     modal.classList.add("hidden");
-    activeDate = sessionDateKey;
-    selectDate(activeDate);
     saveSessionData();
-    renderCalendar(activeDate);
     loadSessionsTypes();
 }
 
@@ -316,6 +313,10 @@ $("next-month").addEventListener("click", () => {
 $("prev-month").addEventListener("click", () => {
     activeDate.setMonth(activeDate.getMonth() - 1);
     renderCalendar(activeDate);
+});
+
+$("new-session-form").addEventListener("submit", function (e) {
+    e.preventDefault();
 });
 
 /** Initial Rendering */
