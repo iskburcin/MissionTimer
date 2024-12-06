@@ -47,6 +47,9 @@ body {
     font-weight: bold;
     color: #640000;
     float: left;
+    width: calc(100% / 7);
+    display: grid;
+    place-items: center;
 }
 
 .day {
@@ -88,6 +91,15 @@ body {
     margin-top: 20px;
 }
 
+#last-row td {
+    background-color: #640000;
+}
+
+#start-session,
+#end-session {
+    margin: 20px;
+
+}
 
 .modal {
     position: fixed;
@@ -213,6 +225,11 @@ table {
     border-radius: 5px;
     border-collapse: collapse;
     margin: 1em;
+    width: 100%;
+}
+
+thead {
+    columns: 4;
 }
 
 th {
@@ -230,11 +247,8 @@ td {
     padding: 0.65em 1em;
 }
 
-.disabled td {
-    color: #4F5F64;
-}
-
 tbody tr {
+    column-width: 10% 30% 30% 30%;
     transition: background 0.25s ease;
 }
 

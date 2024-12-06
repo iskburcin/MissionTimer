@@ -1,240 +1,251 @@
+// Constants
+const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+let activeDate = new Date();
+let sessionTypesByDate = loadSessionData() || {}; // Load from local storage or initialize empty object
 
-/** CALENDAR SİDE */
-renderWeekdays();
-function renderWeekdays() {
-    const weekdaysContainer = document.getElementById("calendar-weekdays");
-    const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    weekdays.forEach((day) => {
-        const weekdayDiv = document.createElement("div");
-        weekdayDiv.textContent = day;
-        weekdayDiv.className = "weekday";
-        weekdayDiv.style.width = `float: left; width: calc(100% / 7); display: grid; place-items: center;`;
-        weekdaysContainer.appendChild(weekdayDiv);
-    })
+/** Helper Functions */
+function $(id) {
+    return document.getElementById(id);
 }
 
-/**
- * Render Calendar
-*/
-const calendarDayss = document.getElementById("calendar-days");
-const calendarMonthAndYear = document.getElementById("month-year");
-const nextButton = document.getElementById("next-month");
-const prevButton = document.getElementById("prev-month");
-const currentDate = new Date();
-let activeDate = currentDate;
+function saveSessionData() {
+    localStorage.setItem("sessionTypesByDate", JSON.stringify(sessionTypesByDate));
+}
 
-function renderCalendar(date) {
-    calendarMonthAndYear.textContent = formatDate(date);
-    calendarDayss.innerHTML = "";
-    const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-
-    /** Get the first day of the month */
-    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
-    const arrangedFirstDay = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-    for (let i = 0; i < arrangedFirstDay; i++) {
-        const emptyDiv = document.createElement("div");
-        calendarDayss.appendChild(emptyDiv);
-    }
-    /** Add actual days */
-    for (let day = 1; day <= daysInMonth; day++) {
-        const dayDiv = document.createElement("div");
-        dayDiv.textContent = day;
-        dayDiv.classList.add("day");
-        if (day === new Date().getDate() && date.getMonth() === new Date().getMonth()) {
-            dayDiv.classList.add("current-day");
-        }
-        dayDiv.addEventListener("click", () => selectDate(day));
-        calendarDayss.appendChild(dayDiv);
-    }
+function loadSessionData() {
+    return JSON.parse(localStorage.getItem("sessionTypesByDate"));
 }
 
 function formatDate(date) {
     return date.toLocaleString('default', { month: 'short', year: 'numeric' });
 }
 
-renderCalendar(activeDate);
-nextButton.addEventListener("click", () => {
-    activeDate.setMonth(activeDate.getMonth() + 1);
-    renderCalendar(activeDate);
+function getDateKey(date) {
+    return date.toDateString();
 }
-);
-prevButton.addEventListener("click", () => {
-    activeDate.setMonth(activeDate.getMonth() - 1);
-    renderCalendar(activeDate);
-});
+
+/** Render Calendar */
+function renderWeekdays() {
+    const container = $("calendar-weekdays");
+    container.innerHTML = weekdays
+        .map(day => `<div class='weekday' style='width: calc(100% / 7); display: grid; place-items: center;'>${day}</div>`)
+        .join('');
+}
+
+/**
+ * Render Calendar
+*/
+function renderCalendar(date) {
+    const daysContainer = $("calendar-days");
+    const monthYearLabel = $("month-year");
+
+    daysContainer.innerHTML = "";
+    monthYearLabel.textContent = formatDate(date);
+
+    const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    const firstDayIndex = (new Date(date.getFullYear(), date.getMonth(), 1).getDay() + 6) % 7;
+
+    for (let i = 0; i < firstDayIndex; i++) {
+        daysContainer.appendChild(document.createElement("div"));
+    }
+    /** Add actual days */
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayDiv = document.createElement("div");
+        dayDiv.textContent = day;
+        dayDiv.className = "day";
+
+        if (day === new Date().getDate() && date.getMonth() === new Date().getMonth()) {
+            dayDiv.classList.add("current-day");
+        }
+
+        dayDiv.addEventListener("click", () => selectDate(day));
+        daysContainer.appendChild(dayDiv);
+    }
+}
 
 /** SESSION SİDE */
-const dropdown = document.getElementById("session-dropdown");
-const selectedDate = document.getElementById('selected-date');
-const selectedSessionType = document.getElementById('session-title');
 
-const sessionDetailsTable = document.getElementById("session-log-table");
-const sessionDetailsBody = document.getElementById("session-log-body");
-let sessionTypesByDate = {};
-
-selectedDate.textContent = new Date().toDateString();
-function selectDate(date) {
-    activeDate.setDate(date);
-    selectedDate.textContent = activeDate.toDateString();
+function selectDate(day) {
+    activeDate.setDate(day);
+    $("selected-date").textContent = getDateKey(activeDate);
     loadSessions();
+    renderSessions();
 }
 
 /**
  * Render Sessions
 */
 function loadSessions() {
-    selectedSessionType.textContent = 'No session selected';
-    const sessionDate = activeDate.toDateString();
-    dropdown.innerHTML = '<option value="" disabled selected>Select a session</option>'; // Clear existing options
+    const dropdown = $("session-dropdown");
+    const sessionDateKey = getDateKey(activeDate);
+    dropdown.innerHTML = '<option value="" disabled selected hidden>Select a session</option>';
 
-    if (sessionTypesByDate[sessionDate]) {
-        const sessionTypes = sessionTypesByDate[sessionDate].sessionsTypes;
-        for (const sessName in sessionTypes) {
-            const option = document.createElement('option');
-            option.value = sessName;
-            option.textContent = sessName;
+    // Correctly check for existence AND for a valid object with sessionTypes property
+    if (sessionTypesByDate &&
+        sessionTypesByDate[sessionDateKey] &&
+        sessionTypesByDate[sessionDateKey].sessionTypes &&
+        typeof sessionTypesByDate[sessionDateKey].sessionTypes === 'object') {
+
+        Object.keys(sessionTypesByDate[sessionDateKey].sessionTypes).forEach(sessionType => {
+            const option = document.createElement("option");
+            option.value = sessionType;
+            option.textContent = sessionType;
             dropdown.appendChild(option);
-        }
+        });
+    } else {
+        // Handle the case where no sessions are available for the selected date
+        //  e.g., add a message to the dropdown, or disable it
+        console.warn(`No sessions found for date: ${sessionDateKey}`);
+        // Example: Add a "No sessions" option
+        const noSessionsOption = document.createElement("option");
+        noSessionsOption.value = "";
+        noSessionsOption.textContent = "No sessions available";
+        noSessionsOption.disabled = true; // Optional: disable selection
+        dropdown.appendChild(noSessionsOption);
     }
 }
-loadSessions();
-dropdown.addEventListener("change", () => {
-    const selectedSession = dropdown.value;
-    const sessionDate = activeDate.toDateString();
-    const thisDay = sessionTypesByDate[sessionDate];
-    const sessionData = thisDay.sessionsTypes[selectedSession];
-
-    if (thisDay && sessionData) {
-        const sessions = sessionData.sessions;
-        console.log("Sessions for selected type:", sessions);
-        selectedSessionType.textContent = selectedSession;
-
-        // Clear previous table rows
-        sessionDetailsBody.innerHTML = '';
-        // Populate table rows
-        for (const sesNo in sessions) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-            <td>${sesNo + 1}</td>
-            <td>${sessions[sesNo].start}</td>
-            <td>${sessions[sesNo].end}</td>
-            <td>${sessions[sesNo].duration}</td>
-            `;
-            sessionDetailsBody.appendChild(row);
-        } // Show the table
-        sessionDetailsTable.classList.remove('hidden');
-    } else {
-        console.log("No sessions found for selected type");
+function renderSessions() {
+    const selectedSessionType = $('session-title');
+    const sessionTable = $("session-log-table");
+    const sessionBody = $("session-log-body");
+    const dropdown = $("session-dropdown");
+    const txtCntnt = $("text");
+    const sessionDateKey = getDateKey(activeDate);
+    if (!sessionTypesByDate[sessionDateKey]) {
+        dropdown.classList.add("hidden");
+        txtCntnt.classList.remove("hidden");
+        txtCntnt.textContent = "Create a session type for today:";
+        sessionTable.classList.add('hidden');
+        return;
     }
-});
+    const selectedSession = dropdown.value;
+    if (!selectedSession) return;
+    const sessionData = sessionTypesByDate[sessionDateKey].sessionTypes[selectedSession];
+    if (!sessionData) return;
 
+    console.log("sessionData:", sessionData); // <-- Add this line
+    console.log("sessionData.sessions:", sessionData.sessions); // <-- And this one
+    console.log("typeof sessionData.sessions:", typeof sessionData.sessions); //Check the type
+
+
+    selectedSessionType.textContent = selectedSession;
+    sessionBody.innerHTML = sessionData.sessions
+        .map((session, index) => `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${session.start}</td>
+                <td>${session.end || '-'}</td>
+                <td>${session.duration || '-'}</td>
+            </tr>
+        `).join('');
+    sessionBody.innerHTML += `
+        <tr id="last-row">
+            <td></td>
+            <td id="start-session">Start</td>
+            <td id="end-session" class="hidden">End</td>
+            <td>Total Time</td>
+        </tr>`;
+    sessionTable.classList.remove("hidden");
+}
 /** SESSION BUTTON SIDE */
-const startSessBtn = document.getElementById("start-session");
-const endSessBtn = document.getElementById("end-session");
+$("start-session").addEventListener("click", addNewSession);
+$("end-session").addEventListener("click", endSession);
+function endSession() {
+    const sessionDate = activeDate.toDateString();
+    const selectedSession = $("session-dropdown").value;
+    const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
+    const sessions = sessionData.sessions;
+    const lastSession = sessions[sessions.length - 1];
+    const now = new Date().toLocaleTimeString('en-US');
+    lastSession.end = now;
+    const start = new Date(`01/01/2007 ${lastSession.start}`);
+    const end = new Date(`01/01/2007 ${lastSession.end}`);
+    const duration = (end - start) / 1000 / 60;
+    lastSession.duration = duration.toFixed(2);
+    $("start-session").classList.remove('hidden');
+    $("end-session").textContent = now;
+    $("dur-session").textContent = lastSession.duration;
+    $("end-session").removeEventListener("click", endSession);
+    renderSessions();
+}
+
 
 function addNewSession() {
-    renderSessions();
     const sessionDate = activeDate.toDateString();
-    const selectedSession = dropdown.value;
-    const sessionData = sessionTypesByDate[sessionDate].sessionsTypes[selectedSession];
-    const sessions = sessionData.sessions;
+    const selectedSession = $("session-dropdown").value;
+    if (!selectedSession) return;
+    const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
+    let sessions = sessionData.sessions;
+    const indx = sessions.length + 1;
     const now = new Date().toLocaleTimeString('en-US');
-    const session = {
+    sessions[indx] = {
         start: now,
         end: '',
         duration: ''
     };
-    startSessBtn.classList.add('hidden');
-    endSessBtn.classList.remove('hidden');
-    sessions.push(session);
-
-
+    $("indx").textContent = indx;
+    $("start-session").textContent = now;
+    $("start-session").removeEventListener("click", addNewSession);
+    $("end-session").classList.remove('hidden');
 }
-
-function renderSessions() {
-    const sessionDate = activeDate.toDateString();
-    const selectedSession = dropdown.value;
-    const sessionData = sessionTypesByDate[sessionDate].sessionsTypes[selectedSession];
-
-    if (sessionData) {
-        const sessions = sessionData.sessions;
-        console.log("Sessions for selected type:", sessions);
-        selectedSessionType.textContent = selectedSession;
-
-        // Clear previous table rows
-        sessionDetailsBody.innerHTML = '';
-        // Populate table rows
-        for (const sesNo in sessions) {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-            <td>${sesNo + 1}</td>
-            <td>${sessions[sesNo].start}</td>
-            <td>${sessions[sesNo].end}</td>
-            <td>${sessions[sesNo].duration}</td>
-            `;
-            sessionDetailsBody.appendChild(row);
-        } // Show the table
-        sessionDetailsTable.classList.remove('hidden');
-    } else {
-        console.log("No sessions found for selected type");
-    }
-}
-renderSessions();
 /** MODAL ADDING SİDE */
 
-const modelAddButton = document.getElementById("add-session-type-btn");
-const modal = document.getElementById("session-model");
+const modal = $("session-model");
 
-modelAddButton.addEventListener("click", () => {
-    modal.classList.remove("hidden");
-    // modal.style.display = "";
-});
-
-const closeButton = document.getElementById("close-model");
-closeButton.addEventListener("click", () => {
-    modal.classList.add("hidden");
-});
-
-const submitButton = document.getElementById("submit-session");
-const sessionName = document.getElementById("session-name");
-const checkDuration = document.getElementById("check-duration");
-const minSessionTime = document.getElementById("min-duration");
-const maxSessionTime = document.getElementById("max-duration");
-
-submitButton.addEventListener("click", () => {
-    const sessionDate = activeDate.toDateString();
-    const sessName = sessionName.value
-    const checkDur = parseInt(checkDuration.value);
-    const minSessTime = parseInt(minSessionTime.value);
-    const maxSessTime = parseInt(maxSessionTime.value);
-    console.log(sessName, checkDur, minSessTime, maxSessTime);
-
-    if (sessName && checkDur && minSessTime && maxSessTime) {
-        if (!sessionTypesByDate[sessionDate]) {
-            sessionTypesByDate[sessionDate] = { sessionsTypes: {} };
-        }
-        if (!sessionTypesByDate[sessionDate].sessionsTypes[sessName]) {
-            sessionTypesByDate[sessionDate].sessionDate = sessionDate;
-            sessionTypesByDate[sessionDate].sessionsTypes[sessName] = {
-                checkDur,
-                minSessTime,
-                maxSessTime,
-                sessions: {}
-            };
-        }
-        const option = document.createElement('option');
-        option.value = sessName;
-        option.textContent = sessName;
-        dropdown.appendChild(option);
-        console.log(sessionTypesByDate[sessionDate]);
-        sessionName.value = '';
-        checkDuration.value = '';
-        minSessionTime.value = '';
-        maxSessionTime.value = '';
-        console.log("Session added");
-    }
-    else {
+function addSessionType() {
+    const dropdown = $("session-dropdown");
+    const sessionDateKey = getDateKey(activeDate);
+    const sessionName = $("session-name").value;
+    const checkDuration = $("check-duration").value;
+    const minDuration = $("min-duration").value;
+    const maxDuration = $("max-duration").value;
+    debugger;
+    console.log(sessionName, checkDuration, minDuration, maxDuration);
+    if (!sessionName || !checkDuration || !minDuration || !maxDuration) {
         alert("Please fill all fields");
+        return;
     }
+
+    if (!sessionTypesByDate[sessionDateKey]) {
+        sessionTypesByDate[sessionDateKey] = { sessionTypes: {} };
+        sessionTypesByDate[sessionDateKey].sessionDateKey = sessionDateKey;
+    }
+    sessionTypesByDate[sessionDateKey].sessionTypes[sessionName] = {
+        checkDuration,
+        minDuration,
+        maxDuration,
+        sessions: {}
+    };
+    dropdown.appendChild(new Option(sessionName, sessionName));
+    console.log(sessionTypesByDate[sessionDateKey]);
+    sessionName.value = '';
+    checkDuration.value = '';
+    minDuration.value = '';
+    maxDuration.value = '';
+    console.log("Session added");
+    $("text").classList.add('hidden');
+    dropdown.classList.remove("hidden");
+    saveSessionData();
+    loadSessions();
     modal.classList.add("hidden");
+}
+
+/** EVENT LISTENERS */
+$("add-session-type-btn").addEventListener("click", () => $("session-model").classList.remove("hidden"));
+$("close-model").addEventListener("click", () => $("session-model").classList.add("hidden"));
+$("submit-session").addEventListener("click", addSessionType);
+
+$("next-month").addEventListener("click", () => {
+    activeDate.setMonth(activeDate.getMonth() + 1);
+    renderCalendar(activeDate);
 });
+
+$("prev-month").addEventListener("click", () => {
+    activeDate.setMonth(activeDate.getMonth() - 1);
+    renderCalendar(activeDate);
+});
+
+/** Initial Rendering */
+renderWeekdays();
+renderCalendar(activeDate);
+selectDate(activeDate.getDate());

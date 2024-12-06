@@ -15,7 +15,10 @@
         <br />
         <!-- Dropdown and Add Session -->
         <div class="session-types">
-          <select id="session-dropdown"></select>
+          <h4 id="text"></h4>
+          <select id="session-dropdown">
+            <option value="0">Select Session Type</option>
+          </select>
           <button title="Add new session type" id="add-session-type-btn">
             +
           </button>
@@ -28,6 +31,7 @@
                 <input
                   type="text"
                   id="session-name"
+                  name="userSession"
                   autocomplete="off"
                   required
                 />
@@ -65,29 +69,11 @@
               </tr>
             </thead>
             <tbody id="session-log-body">
-              <tr>
-                <td>1</td>
-                <td>10:00 AM</td>
-                <td>10:30 AM</td>
-                <td>30 mins</td>
-              </tr>
-              <tr>
-                <td></td>
-                <td>
-                  <button onclick="addNewSession()" id="start-session">
-                    Start
-                  </button>
-                </td>
-                <td>
-                  <button
-                    onclick="stopNewSession()"
-                    id="end-session"
-                    class="hidden"
-                  >
-                    End
-                  </button>
-                </td>
-                <td></td>
+              <tr id="last-row">
+                <td id="indx">0</td>
+                <td id="start-session">Start</td>
+                <td id="end-session" class="hidden">End</td>
+                <td id="dur-session">Total Time</td>
               </tr>
             </tbody>
           </table>
