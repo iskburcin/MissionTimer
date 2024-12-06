@@ -142,133 +142,161 @@ function loadSessionsTypes() {
     selectedSessionType.textContent = '';
 }
 $("session-dropdown").addEventListener("change", renderSessions);
+
 function renderSessions() {
-    const selectedSessionType = $('session-title');
-    const sessionTable = $("session-log-table");
     const sessionBody = $("session-log-body");
-    const dropdown = $("session-dropdown");
-    const txtCntnt = $("text");
     const sessionDateKey = getDateKey(activeDate);
     const dateData = loadSessionData()[sessionDateKey];
+    sessionBody.innerHTML = ''; // Clear previous sessions
+
     if (!loadSessionData() || !dateData || !dateData.sessionTypes) return;
-    const selectedSession = dropdown.value;
-    if (!selectedSession) return;
-    dropdown.classList.remove("hidden");
-    txtCntnt.classList.add("hidden");
+    const selectedSession = $("session-dropdown").value;
 
     if (selectedSession) {
-        if (dateData && dateData.sessionTypes && dateData.sessionTypes[selectedSession]) {
+        if (dateData.sessionTypes[selectedSession]) {
             const sessionData = dateData.sessionTypes[selectedSession];
 
             // Check for sessions property before accessing it
             if (sessionData.sessions && Object.keys(sessionData.sessions).length > 0) {
                 console.log("sessionData:", sessionData);
-                for (let i = 0; i < sessionData.sessions.length; i++) {
-                    const session = sessionData.sessions[i];
+                Object.keys(sessionData.sessions).forEach((key, index) => {
+                    const session = sessionData.sessions[key];
+                    const sec = parseFloat(session.duration) || 0;
                     sessionBody.innerHTML += `
                         <tr>
-                            <td>${i + 1}</td>
-                            <td>${session.start}</td>
-                            <td>${session.end}</td>
-                            <td>${session.duration}</td>
+                            <td>${index + 1}</td>
+                            <td>${new Date(session.start).toLocaleTimeString('en-US')}</td>
+                            <td>${session.end ? new Date(session.end).toLocaleTimeString('en-US') : ''}</td>
+                            <td>${Math.floor(sec / 60 / 60)}h ${Math.floor(sec / 60 % 60)}m ${Math.floor(sec % 60)}s</td>
                         </tr>`;
-                }
-                sessionBody.innerHTML += `
-                    <tr id="last-row">
-                        <td></td>
-                        <td id="start-session">Start</td>
-                        <td id="end-session" class="hidden">End</td>
-                        <td>Total Time</td>
-                    </tr>`;
-                sessionTable.classList.remove("hidden");
-            } else {
-                sessionTable.classList.remove('hidden');
-                selectedSessionType.textContent = selectedSession;
-                sessionBody.innerHTML = `
-                    <tr id="last-row">
-                        <td></td>
-                        <td id="start-session">Start</td>
-                        <td id="end-session" class="hidden">End</td>
-                        <td>Total Time</td>
-                    </tr>`;
+                });
             }
+            const total = sessionData.totalTime || 0;
+            sessionBody.innerHTML += `
+                <tr id="last-row">
+                    <td id="indx"></td>
+                    <td id="start-time"><button id="start-session">Start</button></td>
+                    <td id="end-time"><button id="end-session" class="hidden">End</button></td>
+                    <td id="dur-session">${Math.floor(total / 60 / 60)}h ${Math.floor(total / 60 % 60)}m ${Math.floor(total % 60)}s</td>
+                </tr>`;
+            $("session-log-table").classList.remove("hidden");
         } else {
             console.error("Error: Invalid session type or missing session data.");
-            // Handle the error gracefully, e.g., display an error message to the user.
-            // Example:
-            // alert("Invalid session type selected. Please choose a valid option.");
-            // or
-            // const errorElement = document.getElementById("error-message");
-            // if (errorElement) {
-            //     errorElement.textContent = "Invalid session type selected.";
-            // }
         }
     } else {
         console.log("Waiting for user to select a session type.");
     }
-    // if (!sessionData.sessions || Object.keys(sessionData.sessions).length === 0) {
-    //     sessionTable.classList.remove('hidden');
-    //     selectedSessionType.textContent = selectedSession;
-    //     sessionBody.innerHTML = `
-    //         <tr id="last-row">
-    //             <td></td>
-    //             <td id="start-session">Start</td>
-    //             <td id="end-session" class="hidden">End</td>
-    //             <td>Total Time</td>
-    //         </tr>`;
-    //     return;
-    // } else {
-    //     console.log("sessionData:", sessionData);
-    // }
-    // selectedSessionType.textContent = selectedSession;
 
-}
-/** SESSION BUTTON SIDE */
-$("start-session").addEventListener("click", addNewSession);
-$("end-session").addEventListener("click", endSession);
-function addNewSession() {
-    const sessionDate = getDateKey(activeDate);
-    const selectedSession = $("session-dropdown").value;
-    const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
-    if (!selectedSession || !sessionData) return;
-    let sessions = sessionData.sessions;
-    const indx = sessions.length + 1;
-    const now = new Date().toLocaleTimeString('en-US');
-    sessions[indx].push({
-        start: now,
-        end: '',
-        duration: ''
+    // Add event listeners for start and end buttons
+    $("start-session").addEventListener("click", function addNewSession() {
+        const sessionDate = getDateKey(activeDate);
+        const selectedSession = $("session-dropdown").value;
+        const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
+        if (!selectedSession || !sessionData) return;
+        let sessions = sessionData.sessions;
+        const indx = Object.keys(sessions).length + 1;
+        const now = new Date();
+        sessions[indx] = {
+            start: now,
+            end: '',
+            duration: ''
+        };
+        $("indx").textContent = indx;
+        $("start-session").classList.add('hidden');
+        $("start-time").appendChild(document.createTextNode(now.toLocaleTimeString('en-US')));
+        $("end-session").classList.remove('hidden');
+        saveSessionData();
     });
-    $("indx").textContent = indx;
-    $("start-session").textContent = now;
-    $("start-session").removeEventListener("click", addNewSession);
-    $("end-session").classList.remove('hidden');
-    $("end-session").addEventListener("click", endSession);
-    saveSessionData();
-    renderSessions();
+
+    $("end-session").addEventListener("click", function endSession() {
+        const sessionDate = getDateKey(activeDate);
+        const selectedSession = $("session-dropdown").value;
+        const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
+        if (!selectedSession || !sessionData) return;
+        const lastSession = sessionData.sessions[Object.keys(sessionData.sessions).length];
+        lastSession.end = new Date().toISOString();
+        const startTime = new Date(lastSession.start);
+        const endTime = new Date(lastSession.end);
+        const seconds = (endTime - startTime) / 1000;
+        const minutes = seconds / 60;
+        const hours = Math.floor(minutes / 60);
+        lastSession.duration = seconds.toFixed(2);
+
+        $("start-session").classList.remove('hidden');
+        $("end-session").textContent = new Date(lastSession.end).toLocaleTimeString('en-US');
+        $("dur-session").textContent = `${hours}h ${Math.floor(minutes % 60)}m ${Math.floor(seconds % 60)}s`;
+        $("end-session").classList.add('hidden');
+        let total = 0;
+        Object.keys(sessionData.sessions).forEach((key) => {
+            total += parseFloat(sessionData.sessions[key].duration) || 0;
+        });
+        $("dur-session").textContent = `${Math.floor(total / 60 / 60)}h ${Math.floor(total / 60 % 60)}m ${Math.floor(total % 60)}s`;
+        sessionData.totalTime = total;
+        saveSessionData();
+        renderSessions();
+    });
 }
-function endSession() {
-    const sessionDate = getDateKey(activeDate);
+
+function deleteSession(sessionIndex) {
+    const sessionDateKey = getDateKey(activeDate);
     const selectedSession = $("session-dropdown").value;
-    const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
+    const sessionData = sessionTypesByDate[sessionDateKey].sessionTypes[selectedSession];
     if (!selectedSession || !sessionData) return;
-    const lastSession = sessionData.sessions[sessions.length - 1];
-    const now = new Date().toLocaleTimeString('en-US');
-    lastSession.end = now;
-    const start = new Date(lastSession.start);
-    const end = new Date(lastSession.end);
-    lastSession.duration = Math.floor((endTime - startTime) / 1000 / 60); // Duration in minutes
-    $("start-session").classList.remove('hidden');
-    $("end-session").textContent = now;
-    $("dur-session").textContent = lastSession.duration;
-    $("end-session").removeEventListener("click", endSession);
+
+    sessionIndex = parseInt(sessionIndex, 10); // Convert sessionIndex to integer
+    delete sessionData.sessions[sessionIndex];
+
+    // Re-sort sessions
+    const sortedSessions = {};
+    Object.keys(sessionData.sessions).sort((a, b) => a - b).forEach((key, index) => {
+        sortedSessions[index + 1] = sessionData.sessions[key];
+    });
+    sessionData.sessions = sortedSessions;
+
     saveSessionData();
     renderSessions();
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    // Add event listener for right-click to show delete option
+    $("session-log-body").addEventListener("contextmenu", function (event) {
+        event.preventDefault();
+        const targetRow = event.target.closest("tr");
+        if (!targetRow || targetRow.id === "last-row") return;
 
+        // Remove any existing context menus
+        document.querySelectorAll(".context-menu").forEach(menu => menu.remove());
 
+        // Create context menu
+        const contextMenu = document.createElement("div");
+        contextMenu.id = "right-click-menu";
+        contextMenu.style.display = "block";
+        contextMenu.style.top = `${event.pageY}px`;
+        contextMenu.style.left = `${event.pageX}px`;
+        contextMenu.innerHTML = `
+            <ul>
+                <li id="edit-session">Edit</li>
+                <li id="delete-session">Delete</li>
+            </ul>
+        `;
 
+        // Add event listener for delete option
+        contextMenu.querySelector("#delete-session").addEventListener("click", function () {
+            const sessionIndex = targetRow.querySelector("td").textContent;
+            deleteSession(sessionIndex);
+            targetRow.remove();
+            contextMenu.remove();
+        });
+
+        document.body.appendChild(contextMenu);
+
+        // Remove context menu on click outside
+        document.addEventListener("click", function removeContextMenu() {
+            contextMenu.remove();
+            document.removeEventListener("click", removeContextMenu);
+        });
+    });
+});
 
 /** EVENT LISTENERS */
 $("add-session-type-btn").addEventListener("click", () => $("session-model").classList.remove("hidden"));

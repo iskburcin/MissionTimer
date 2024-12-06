@@ -71,8 +71,12 @@
             <tbody id="session-log-body">
               <tr id="last-row">
                 <td id="indx">0</td>
-                <td id="start-session">Start</td>
-                <td id="end-session" class="hidden">End</td>
+                <td id="start-time">
+                  <button id="start-session">Start</button>
+                </td>
+                <td id="end-time">
+                  <button id="end-session" class="hidden">End</button>
+                </td>
                 <td id="dur-session">Total Time</td>
               </tr>
             </tbody>
@@ -94,9 +98,35 @@
           </div>
         </div>
         <div class="session-types-summary">
+          <h4>Session's Summary</h4>
+          <div id="session-summary">
+            <table>
+              <thead>
+                <tr>
+                  <th>Session Type</th>
+                  <th>Session Count</th>
+                  <th>Total Duration</th>
+                </tr>
+              </thead>
+              <tbody id="session-summary-body">
+                <tr>
+                  <td id="session-type"></td>
+                  <td id="session-count"></td>
+                  <td id="session-duration">0</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- right click menu -->
+    <div id="right-click-menu" class="hidden">
+      <ul>
+        <li id="edit-session">Edit</li>
+        <li id="delete-session">Delete</li>
+      </ul>
     </div>
   </body>
   <script src="/script.js"></script>

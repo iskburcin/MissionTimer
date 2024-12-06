@@ -97,7 +97,7 @@ body {
 
 #start-session,
 #end-session {
-    margin: 20px;
+    /* margin: 20px; */
 
 }
 
@@ -179,6 +179,28 @@ body {
 
 }
 
+#right-click-menu {
+    position: absolute;
+    display: none;
+    background-color: #5e0000;
+    border-radius: 5px;
+    z-index: 1000;
+}
+
+#right-click-menu ul {
+    list-style-type: none;
+    padding: 5px;
+}
+
+#right-click-menu ul li {
+    padding: 5px;
+    color: white;
+}
+
+#right-click-menu ul li:hover {
+    background-color: #640000;
+    cursor: pointer;
+}
 
 /** Genneral Styles **/
 select {
@@ -191,7 +213,7 @@ select {
 button {
     font-size: 16px;
     padding: 10px 15px;
-    margin: 10px 0px;
+    /* margin: 10px 0px; */
     background-color: #640000;
     color: white;
     border: none;
