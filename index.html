@@ -15,8 +15,8 @@
         <br />
         <!-- Dropdown and Add Session -->
         <div class="session-types">
-          <h4 id="text"></h4>
-          <select id="session-dropdown">
+          <h4 id="text">Create a session type for today:</h4>
+          <select id="session-dropdown" class="hidden">
             <option value="0">Select Session Type</option>
           </select>
           <button title="Add new session type" id="add-session-type-btn">
@@ -57,9 +57,7 @@
 
         <!-- Session Details -->
         <div id="session-details">
-          <h3 id="session-title">Session Type</h3>
-          <!-- <div id="session-info"></div> -->
-          <table id="session-log-table">
+          <table id="session-log-table" class="hidden">
             <thead>
               <tr>
                 <th>No</th>

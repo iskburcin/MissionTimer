@@ -51,8 +51,13 @@ function renderCalendar(date) {
         dayDiv.textContent = day;
         dayDiv.className = "day";
 
-        if (day === new Date().getDate() && date.getMonth() === new Date().getMonth()) {
+        if (day === new Date().getDate() && date.getMonth() === new Date().getMonth() && date.getFullYear() === new Date().getFullYear()) {
             dayDiv.classList.add("current-day");
+        }
+
+        // Seçili günü vurgula
+        if (day === date.getDate()) {
+            dayDiv.classList.add("selected-day");
         }
 
         dayDiv.addEventListener("click", () => selectDate(day));
@@ -71,7 +76,7 @@ function selectDate(day) {
 function addSessionType() {
     const modal = $("session-model");
     const dropdown = $("session-dropdown");
-    const sessionDateKey = getDateKey(activeDate);
+    const sessionDateKey = new Date(getDateKey(activeDate));
     const sessionName = $("session-name").value;
     const checkDuration = $("check-duration").value;
     const minDuration = $("min-duration").value;
@@ -103,7 +108,10 @@ function addSessionType() {
     $("text").classList.add('hidden');
     dropdown.classList.remove("hidden");
     modal.classList.add("hidden");
+    activeDate = sessionDateKey;
+    selectDate(activeDate);
     saveSessionData();
+    renderCalendar(activeDate);
     loadSessionsTypes();
 }
 
@@ -111,7 +119,6 @@ function addSessionType() {
  * Render Sessions
 */
 function loadSessionsTypes() {
-    const selectedSessionType = $('session-title');
     const sessionTable = $("session-log-table");
     const dropdown = $("session-dropdown");
     const txtCntnt = $("text");
@@ -136,10 +143,8 @@ function loadSessionsTypes() {
         console.warn(`No sessions found for date: ${sessionDateKey}`);
         dropdown.classList.add("hidden");
         txtCntnt.classList.remove("hidden");
-        txtCntnt.textContent = "Create a session type for today:";
     }
     sessionTable.classList.add('hidden');
-    selectedSessionType.textContent = '';
 }
 $("session-dropdown").addEventListener("change", renderSessions);
 

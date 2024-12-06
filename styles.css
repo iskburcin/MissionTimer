@@ -73,6 +73,11 @@ body {
     color: #ffffff;
 }
 
+.day.selected-day {
+    background-color: #640000;
+    color: #ffffff;
+}
+
 /** Session Styles **/
 .session-side {
     padding: 20px;
