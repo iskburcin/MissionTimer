@@ -7,13 +7,13 @@ function $(id) {
     return document.getElementById(id);
 }
 
-function saveSessionData() {
-    localStorage.setItem("sessionTypesByDate", JSON.stringify(sessionTypesByDate));
-}
-
 let sessionTypesByDate = loadSessionData() || {}; // Load from local storage or initialize empty object
 function loadSessionData() {
     return JSON.parse(localStorage.getItem("sessionTypesByDate"));
+}
+
+function saveSessionData() {
+    localStorage.setItem("sessionTypesByDate", JSON.stringify(sessionTypesByDate));
 }
 
 function formatDate(date) {
@@ -132,10 +132,10 @@ function loadSessionsTypes() {
             option.value = sessionType;
             option.textContent = sessionType;
             dropdown.appendChild(option);
+            loadSessionsSummary(sessionData);
         });
         dropdown.classList.remove("hidden");
         txtCntnt.classList.add("hidden");
-        // renderSessions();
     } else {
         console.warn(`No sessions found for date: ${sessionDateKey}`);
         dropdown.classList.add("hidden");
@@ -143,8 +143,24 @@ function loadSessionsTypes() {
     }
     sessionTable.classList.add('hidden');
 }
-$("session-dropdown").addEventListener("change", renderSessions);
 
+function loadSessionsSummary(sessionData) {
+    const sessSummaryBody = $("session-summary-body");
+    sessSummaryBody.innerHTML = "";
+    Object.keys(sessionData).forEach(session => {
+        const sec = parseFloat(sessionData[session].totalTime) || 0;
+        const totalSessions = Object.keys(sessionData[session].sessions).length;
+        sessSummaryBody.innerHTML += `
+                <tr>
+                    <td>${session}</td>
+                    <td>${totalSessions}</td>
+                    <td>${Math.floor(sec / 60 / 60)}h ${Math.floor(sec / 60 % 60)}m ${Math.floor(sec % 60)}s</td>
+                </tr >
+            `;
+    })
+}
+
+$("session-dropdown").addEventListener("change", renderSessions);
 function renderSessions() {
     const sessionBody = $("session-log-body");
     const sessionDateKey = getDateKey(activeDate);
@@ -173,13 +189,12 @@ function renderSessions() {
                         </tr>`;
                 });
             }
-            const total = sessionData.totalTime || 0;
             sessionBody.innerHTML += `
                 <tr id="last-row">
                     <td id="indx"></td>
                     <td id="start-time"><button id="start-session">Start</button></td>
                     <td id="end-time"><button id="end-session" class="hidden">End</button></td>
-                    <td id="dur-session">${Math.floor(total / 60 / 60)}h ${Math.floor(total / 60 % 60)}m ${Math.floor(total % 60)}s</td>
+                    <td id="dur-session">-</td>
                 </tr>`;
             $("session-log-table").classList.remove("hidden");
         } else {
@@ -191,9 +206,7 @@ function renderSessions() {
 
     // Add event listeners for start and end buttons
     $("start-session").addEventListener("click", function addNewSession() {
-        const sessionDate = getDateKey(activeDate);
-        const selectedSession = $("session-dropdown").value;
-        const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
+        const sessionData = dateData.sessionTypes[selectedSession];
         if (!selectedSession || !sessionData) return;
         let sessions = sessionData.sessions;
         const indx = Object.keys(sessions).length + 1;
@@ -213,7 +226,8 @@ function renderSessions() {
     $("end-session").addEventListener("click", function endSession() {
         const sessionDate = getDateKey(activeDate);
         const selectedSession = $("session-dropdown").value;
-        const sessionData = sessionTypesByDate[sessionDate].sessionTypes[selectedSession];
+        const sessionDatas = sessionTypesByDate[sessionDate].sessionTypes
+        const sessionData = sessionDatas[selectedSession];
         if (!selectedSession || !sessionData) return;
         const lastSession = sessionData.sessions[Object.keys(sessionData.sessions).length];
         lastSession.end = new Date().toISOString();
@@ -225,17 +239,17 @@ function renderSessions() {
         lastSession.duration = seconds.toFixed(2);
 
         $("start-session").classList.remove('hidden');
-        $("end-session").textContent = new Date(lastSession.end).toLocaleTimeString('en-US');
+        $("end-time").textContent = new Date(lastSession.end).toLocaleTimeString('en-US');
         $("dur-session").textContent = `${hours}h ${Math.floor(minutes % 60)}m ${Math.floor(seconds % 60)}s`;
         $("end-session").classList.add('hidden');
         let total = 0;
         Object.keys(sessionData.sessions).forEach((key) => {
             total += parseFloat(sessionData.sessions[key].duration) || 0;
         });
-        $("dur-session").textContent = `${Math.floor(total / 60 / 60)}h ${Math.floor(total / 60 % 60)}m ${Math.floor(total % 60)}s`;
         sessionData.totalTime = total;
         saveSessionData();
         renderSessions();
+        loadSessionsSummary(sessionDatas);
     });
 }
 
@@ -256,6 +270,7 @@ function deleteSession(sessionIndex) {
     sessionData.sessions = sortedSessions;
 
     saveSessionData();
+    loadSessionsSummary(sessionDateKey);
     renderSessions();
 }
 
@@ -266,35 +281,23 @@ document.addEventListener("DOMContentLoaded", function () {
         const targetRow = event.target.closest("tr");
         if (!targetRow || targetRow.id === "last-row") return;
 
-        // Remove any existing context menus
-        document.querySelectorAll(".context-menu").forEach(menu => menu.remove());
-
         // Create context menu
-        const contextMenu = document.createElement("div");
-        contextMenu.id = "right-click-menu";
+        const contextMenu = $("right-click-menu");
         contextMenu.style.display = "block";
         contextMenu.style.top = `${event.pageY}px`;
         contextMenu.style.left = `${event.pageX}px`;
-        contextMenu.innerHTML = `
-            <ul>
-                <li id="edit-session">Edit</li>
-                <li id="delete-session">Delete</li>
-            </ul>
-        `;
 
         // Add event listener for delete option
         contextMenu.querySelector("#delete-session").addEventListener("click", function () {
             const sessionIndex = targetRow.querySelector("td").textContent;
             deleteSession(sessionIndex);
+            contextMenu.style.display = "none";
             targetRow.remove();
-            contextMenu.remove();
         });
-
-        document.body.appendChild(contextMenu);
 
         // Remove context menu on click outside
         document.addEventListener("click", function removeContextMenu() {
-            contextMenu.remove();
+            contextMenu.style.display = "none";
             document.removeEventListener("click", removeContextMenu);
         });
     });
