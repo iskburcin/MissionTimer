@@ -82,7 +82,6 @@ function addSessionType() {
     const checkDuration = $("check-duration").value;
     const minDuration = $("min-duration").value;
     const maxDuration = $("max-duration").value;
-    console.log(sessionName, checkDuration, minDuration, maxDuration);
     if (!sessionName || !checkDuration || !minDuration || !maxDuration) {
         alert("Please fill all fields");
         return;
@@ -99,12 +98,10 @@ function addSessionType() {
         sessions: {}
     };
     dropdown.appendChild(new Option(sessionName, sessionName));
-    console.log(sessionTypesByDate[sessionDateKey]);
     sessionName.value = '';
     checkDuration.value = '';
     minDuration.value = '';
     maxDuration.value = '';
-    console.log("Session added");
     $("text").classList.add('hidden');
     dropdown.classList.remove("hidden");
     modal.classList.add("hidden");
@@ -164,7 +161,7 @@ $("session-dropdown").addEventListener("change", renderSessions);
 function renderSessions() {
     const sessionBody = $("session-log-body");
     const sessionDateKey = getDateKey(activeDate);
-    const dateData = loadSessionData()[sessionDateKey];
+    const dateData = sessionTypesByDate[sessionDateKey];
     sessionBody.innerHTML = ''; // Clear previous sessions
 
     if (!loadSessionData() || !dateData || !dateData.sessionTypes) return;
@@ -176,7 +173,6 @@ function renderSessions() {
 
             // Check for sessions property before accessing it
             if (sessionData.sessions && Object.keys(sessionData.sessions).length > 0) {
-                console.log("sessionData:", sessionData);
                 Object.keys(sessionData.sessions).forEach((key, index) => {
                     const session = sessionData.sessions[key];
                     const sec = parseFloat(session.duration) || 0;
@@ -210,7 +206,7 @@ function renderSessions() {
         if (!selectedSession || !sessionData) return;
         let sessions = sessionData.sessions;
         const indx = Object.keys(sessions).length + 1;
-        const now = new Date();
+        const now = new Date().toISOString();
         sessions[indx] = {
             start: now,
             end: '',
@@ -218,29 +214,30 @@ function renderSessions() {
         };
         $("indx").textContent = indx;
         $("start-session").classList.add('hidden');
-        $("start-time").appendChild(document.createTextNode(now.toLocaleTimeString('en-US')));
+        $("start-time").appendChild(document.createTextNode(new Date(now).toLocaleTimeString('en-US')));
         $("end-session").classList.remove('hidden');
         saveSessionData();
     });
 
     $("end-session").addEventListener("click", function endSession() {
-        const sessionDate = getDateKey(activeDate);
-        const selectedSession = $("session-dropdown").value;
-        const sessionDatas = sessionTypesByDate[sessionDate].sessionTypes
-        const sessionData = sessionDatas[selectedSession];
+        const sessionsData = dateData.sessionTypes;
+        const sessionData = sessionsData[selectedSession];
         if (!selectedSession || !sessionData) return;
-        const lastSession = sessionData.sessions[Object.keys(sessionData.sessions).length];
-        lastSession.end = new Date().toISOString();
-        const startTime = new Date(lastSession.start);
-        const endTime = new Date(lastSession.end);
-        const seconds = (endTime - startTime) / 1000;
-        const minutes = seconds / 60;
+        const lastSession = sessionData.sessions
+        const indx = Object.keys(sessionData.sessions).length;
+        const now = new Date().toISOString();
+        lastSession[indx] = {
+            start: lastSession[indx].start,
+            end: now,
+            duration: ((new Date(now) - new Date(lastSession[indx].start)) / 1000).toFixed(2)
+        };
+        const minutes = lastSession[indx].duration / 60;
         const hours = Math.floor(minutes / 60);
-        lastSession.duration = seconds.toFixed(2);
 
         $("start-session").classList.remove('hidden');
-        $("end-time").textContent = new Date(lastSession.end).toLocaleTimeString('en-US');
-        $("dur-session").textContent = `${hours}h ${Math.floor(minutes % 60)}m ${Math.floor(seconds % 60)}s`;
+        // $("end-time").textContent = new Date(lastSession.end).toLocaleTimeString('en-US');
+        $("end-time").appendChild(document.createTextNode(new Date(lastSession.end).toLocaleTimeString('en-US')));
+        $("dur-session").textContent = `${hours}h ${Math.floor(minutes % 60)}m ${Math.floor(lastSession[indx].duration % 60)}s`;
         $("end-session").classList.add('hidden');
         let total = 0;
         Object.keys(sessionData.sessions).forEach((key) => {
@@ -249,7 +246,7 @@ function renderSessions() {
         sessionData.totalTime = total;
         saveSessionData();
         renderSessions();
-        loadSessionsSummary(sessionDatas);
+        loadSessionsSummary(sessionsData);
     });
 }
 
@@ -293,6 +290,7 @@ document.addEventListener("DOMContentLoaded", function () {
             deleteSession(sessionIndex);
             contextMenu.style.display = "none";
             targetRow.remove();
+            loadSessionsSummary(getDateKey(activeDate));
         });
 
         // Remove context menu on click outside
