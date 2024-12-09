@@ -100,6 +100,16 @@ body {
     background-color: #640000;
 }
 
+#toggler {
+    /* position: absolute;
+    transform: translateY(-50%);
+    cursor: pointer; */
+}
+
+.fa-sharp fa-solid fa-eye {
+    background-color: #ccc;
+}
+
 #start-session,
 #end-session {
     /* margin: 20px; */
@@ -184,7 +194,7 @@ body {
 
 }
 
-#right-click-menu {
+.menu {
     position: absolute;
     display: none;
     background-color: #5e0000;
@@ -192,17 +202,17 @@ body {
     z-index: 1000;
 }
 
-#right-click-menu ul {
+.menu ul {
     list-style-type: none;
     padding: 5px;
 }
 
-#right-click-menu ul li {
+.menu ul li {
     padding: 5px;
     color: white;
 }
 
-#right-click-menu ul li:hover {
+.menu ul li:hover {
     background-color: #640000;
     cursor: pointer;
 }
@@ -250,6 +260,7 @@ input {
 table {
     background: #390101;
     border-radius: 5px;
+    /** doesnt stickt each other rows and columns*/
     border-collapse: collapse;
     margin: 10px 0;
     width: 100%;
