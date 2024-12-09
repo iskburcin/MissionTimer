@@ -295,9 +295,17 @@ document.addEventListener("DOMContentLoaded", function () {
         contextMenu.style.top = `${event.pageY}px`;
         contextMenu.style.left = `${event.pageX}px`;
 
-        // Add event listener for delete option
-        contextMenu.querySelector("#delete-session").addEventListener("click", function () {
-            const sessionIndex = targetRow.querySelector("td").textContent;
+
+        // Clear any previous click listeners from the delete button
+        // Otherwise, it deletes multiple row (based on how many times clicked/triggered the listener)
+        // So, reset button to remove all previous listeners
+        const deleteButton = contextMenu.querySelector("#delete-session");
+        deleteButton.replaceWith(deleteButton.cloneNode(true)); // Resets
+        const newDeleteButton = contextMenu.querySelector("#delete-session");
+
+        // Add event listener to new delete option
+        newDeleteButton.addEventListener("click", function () {
+            const sessionIndex = targetRow.querySelector("td").textContent.trim();
             deleteSession(sessionIndex);
             contextMenu.style.display = "none";
             targetRow.remove();
