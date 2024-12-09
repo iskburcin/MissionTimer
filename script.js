@@ -245,17 +245,16 @@ function renderSessions() {
         renderSessions();
         loadSessionsSummary(sessions);
     });
+}
+function getDuration(session, isTime, isLast) {
+    const now = isLast ? new Date() : new Date(session.end);
+    const start = session.start;
+    const duration = ((now - new Date(start)) / 1000).toFixed(2);
+    const s = Math.floor(duration % 60);
+    const m = Math.floor(s / 60 % 60);
+    const h = Math.floor(m / 60 / 60);
 
-    function getDuration(session, isTime, isLast) {
-        const now = isLast ? new Date() : new Date(session.end);
-        const start = session.start;
-        const duration = ((now - new Date(start)) / 1000).toFixed(2);
-        const s = Math.floor(duration % 60);
-        const m = Math.floor(s / 60 % 60);
-        const h = Math.floor(m / 60 / 60);
-
-        return isTime ? duration : `${h}h ${m}m ${s}s`;
-    }
+    return isTime ? duration : `${h}h ${m}m ${s}s`;
 }
 
 function deleteSession(sessionIndex) {
@@ -282,44 +281,53 @@ function deleteSession(sessionIndex) {
 
 /**DomContent loaded kullanmamızın sebebi tüm html ve deferred scripts yüklendikten, ama stylesheetlerden önce documanı durdurur. Yani bizim  */
 document.addEventListener("DOMContentLoaded", function () {
-    const contextMenu = $("right-click-menu");
-
+    const contextMenu = $("table-body-menu");
     // Add event listener for right-click to show delete option
     $("session-log-body").addEventListener("contextmenu", function (event) {
         event.preventDefault();
         const targetRow = event.target.closest("tr");
-        if (!targetRow || targetRow.id === "last-row") return;
+        const lastRowMenu = $("last-row-menu");
+        if (!targetRow || targetRow.id !== "last-row" && lastRowMenu.classList.contains("hidden")) {
+            // Create context menu
+            contextMenu.classList.remove("hidden");
+            contextMenu.style.top = `${event.pageY}px`;
+            contextMenu.style.left = `${event.pageX}px`;
 
-        // Create context menu
-        contextMenu.style.display = "block";
-        contextMenu.style.top = `${event.pageY}px`;
-        contextMenu.style.left = `${event.pageX}px`;
+            // Clear any previous click listeners from the delete button
+            // Otherwise, it deletes multiple row (based on how many times clicked/triggered the listener)
+            // So, reset button to remove all previous listeners
+            // true says subtree and all attributes (sub elements) will be included to clonedNode except event listeners
+            const deleteButton = $("delete-session");
+            //yani cloneNode ile eventler dışında oluşturduğum yeni butonu aynı butonla yer değiştiriyorum
+            deleteButton.replaceWith(deleteButton.cloneNode(true)); // Resets
+            const newDeleteButton = $("delete-session");
 
+            // Add event listener to new delete option
+            newDeleteButton.addEventListener("click", function () {
+                const sessionIndex = targetRow.querySelector("td").textContent.trim();
+                deleteSession(sessionIndex);
+                contextMenu.classList.add("hidden");
+                targetRow.remove();
+            });
 
-        // Clear any previous click listeners from the delete button
-        // Otherwise, it deletes multiple row (based on how many times clicked/triggered the listener)
-        // So, reset button to remove all previous listeners
-        const deleteButton = contextMenu.querySelector("#delete-session");
-        deleteButton.replaceWith(deleteButton.cloneNode(true)); // Resets
-        const newDeleteButton = contextMenu.querySelector("#delete-session");
+            // Remove context menu on click outside
+            document.addEventListener("click", function () {
+                contextMenu.classList.add("hidden");
+            });
+        } else {
+            if ($("start-session").classList.contains("hidden") && contextMenu.classList.contains("hidden")) {
+                lastRowMenu.style.display = "block"
+                lastRowMenu.style.top = `${event.pageY}px`;
+                lastRowMenu.style.left = `${event.pageX}px`;
 
-        // Add event listener to new delete option
-        newDeleteButton.addEventListener("click", function () {
-            const sessionIndex = targetRow.querySelector("td").textContent.trim();
-            deleteSession(sessionIndex);
-            contextMenu.style.display = "none";
-            targetRow.remove();
-        });
-
+                document.addEventListener("click", function removeContextMenu() {
+                    lastRowMenu.style.display = "none";
+                    document.removeEventListener("click", removeContextMenu);
+                });
+            }
+        }
     });
-    // Remove context menu on click outside
-    document.addEventListener("click", function removeContextMenu() {
-        contextMenu.style.display = "none";
-        // document.removeEventListener("click", removeContextMenu);
-    });
-
 });
-
 /** EVENT LISTENERS */
 $("add-session-type-btn").addEventListener("click", () => {
     $("session-name").value = '';
