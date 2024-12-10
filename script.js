@@ -157,7 +157,7 @@ function loadSessionsSummary(sessionData) {
         <tr>
         <td>${session}</td>
         <td>${totalSessions}</td>
-        <td>${Math.floor(sec / 60 / 60)}h ${Math.floor(sec / 60 % 60)}m ${Math.floor(sec % 60)}s</td>
+        <td>${Math.floor(sec / 3600)}h ${Math.floor(sec / 60 % 60)}m ${Math.floor(sec % 60)}s</td>
         </tr >
         `;
     });
@@ -251,10 +251,37 @@ function getDuration(session, isTime, isLast) {
     const start = session.start;
     const duration = ((now - new Date(start)) / 1000).toFixed(2);
     const s = Math.floor(duration % 60);
-    const m = Math.floor(s / 60 % 60);
-    const h = Math.floor(m / 60 / 60);
+    const m = Math.floor(duration / 60) % 60;
+    const h = Math.floor(duration / 3600);
 
     return isTime ? duration : `${h}h ${m}m ${s}s`;
+}
+
+function getCurrentSession(isAll = false) {
+    const date = getDateKey(activeDate);
+    const selectedSession = $("session-dropdown").value;
+    const sessions = loadSessionData()[date].sessionTypes[selectedSession].sessions;
+    const lastIndex = Object.keys(sessions).length;
+    const currSession = sessions[lastIndex];
+    return isAll ? sessions : currSession;
+}
+function getSessionElapsedTime() {
+    const currSession = getCurrentSession();
+    $("duration").innerText = getDuration(currSession, false, true);
+}
+function getTotalElapsedTime(wantValue = true) {
+    const sessions = getCurrentSession(true);
+    const length = Object.keys(sessions).length;
+    let total = 0;
+    Object.keys(sessions).forEach((key) => {
+        total += parseFloat(sessions[key].duration) || 0;
+    });
+    const lastSesDuration = parseFloat(getDuration(sessions[length], true, true));
+    total += lastSesDuration;
+    const s = Math.floor(total % 60);
+    const m = Math.floor(total / 60) % 60;
+    const h = Math.floor(total / 3600);
+    return wantValue ? total : `${h}h ${m}m ${s}s`;
 }
 
 function deleteSession(sessionIndex) {
@@ -281,15 +308,16 @@ function deleteSession(sessionIndex) {
 
 /**DomContent loaded kullanmamızın sebebi tüm html ve deferred scripts yüklendikten, ama stylesheetlerden önce documanı durdurur. Yani bizim  */
 document.addEventListener("DOMContentLoaded", function () {
-    const contextMenu = $("table-body-menu");
     // Add event listener for right-click to show delete option
     $("session-log-body").addEventListener("contextmenu", function (event) {
         event.preventDefault();
         const targetRow = event.target.closest("tr");
+        const contextMenu = $("table-body-menu");
         const lastRowMenu = $("last-row-menu");
         if (!targetRow || targetRow.id !== "last-row" && lastRowMenu.classList.contains("hidden")) {
             // Create context menu
             contextMenu.classList.remove("hidden");
+            lastRowMenu.classList.add("hidden");
             contextMenu.style.top = `${event.pageY}px`;
             contextMenu.style.left = `${event.pageX}px`;
 
@@ -297,10 +325,8 @@ document.addEventListener("DOMContentLoaded", function () {
             // Otherwise, it deletes multiple row (based on how many times clicked/triggered the listener)
             // So, reset button to remove all previous listeners
             // true says subtree and all attributes (sub elements) will be included to clonedNode except event listeners
-            const deleteButton = $("delete-session");
-            //yani cloneNode ile eventler dışında oluşturduğum yeni butonu aynı butonla yer değiştiriyorum
-            deleteButton.replaceWith(deleteButton.cloneNode(true)); // Resets
-            const newDeleteButton = $("delete-session");
+
+            const newDeleteButton = getEventRemovedNode("delete-session");
 
             // Add event listener to new delete option
             newDeleteButton.addEventListener("click", function () {
@@ -315,19 +341,43 @@ document.addEventListener("DOMContentLoaded", function () {
                 contextMenu.classList.add("hidden");
             });
         } else {
-            if ($("start-session").classList.contains("hidden") && contextMenu.classList.contains("hidden")) {
-                lastRowMenu.style.display = "block"
+            if ($("start-session").classList.contains("hidden") && contextMenu.classList.contains("hidden") && targetRow.id === "last-row") {
+                lastRowMenu.classList.remove("hidden");
                 lastRowMenu.style.top = `${event.pageY}px`;
                 lastRowMenu.style.left = `${event.pageX}px`;
-
+                const sessionTime = getEventRemovedNode("session-elapsed-time");
+                const totalTime = getEventRemovedNode("total-elapsed-time");
+                sessionTime.addEventListener("change", () => {
+                    if (sessionTime.checked) {
+                        getSessionElapsedTime();
+                        totalTime.checked = false;
+                    } else
+                        $("duration").innerText = "--- --- ---";
+                });
+                totalTime.addEventListener("change", (e) => {
+                    if (totalTime.checked) {
+                        $("duration").innerText = getTotalElapsedTime(false);
+                        sessionTime.checked = false;
+                    } else
+                        $("duration").innerText = "--- --- ---";
+                })
                 document.addEventListener("click", function removeContextMenu() {
-                    lastRowMenu.style.display = "none";
-                    document.removeEventListener("click", removeContextMenu);
+                    if (event.target.id !== "last-row-menu") {
+                        lastRowMenu.classList.add("hidden");
+                        document.removeEventListener("click", removeContextMenu);
+                    }
                 });
             }
         }
     });
 });
+
+function getEventRemovedNode(element) {
+    const elem = $(`${element}`);
+    elem.replaceWith(elem.cloneNode(true));
+    const newElem = $(`${element}`);;
+    return newElem;
+}
 /** EVENT LISTENERS */
 $("add-session-type-btn").addEventListener("click", () => {
     $("session-name").value = '';

@@ -218,7 +218,7 @@ body {
     transition: 120ms transform ease-in-out;
 }
 
-.menu input[type="radio"] {
+.menu input[type="checkbox"] {
     appearance: none;
     background-color: #fff;
     margin: 0;
@@ -235,16 +235,16 @@ body {
     place-content: center;
 }
 
-#last-row-menu input[type="radio"]:checked::before {
+#last-row-menu input[type="checkbox"]:checked::before {
     transform: scale(1);
 }
 
-#last-row-menu input[type="radio"]:focus {
+#last-row-menu input[type="checkbox"]:focus {
     outline: max(2px, 0.15em) solid #610000;
     outline-offset: max(2px, 0.15em);
 }
 
-#last-row-menu input[type="radio"]::before {
+#last-row-menu input[type="checkbox"]::before {
     content: "";
     width: 0.65em;
     height: 0.65em;
