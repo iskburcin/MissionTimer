@@ -195,7 +195,7 @@ function renderCalendar(date) {
 
 /** SESSION SİDE */
 
-function addSessionType() {
+function addNewTag() {
     const modal = $("tag-model");
     const dropdown = $("tag-dropdown");
     const date = get("date");
@@ -222,6 +222,7 @@ function addSessionType() {
     }
     $("text").classList.add('hidden');
     dropdown.classList.remove("hidden");
+    dropdown.dataset.lastTag = tag;
     modal.classList.add("hidden");
     saveData();
     loadTags();
@@ -233,7 +234,7 @@ function loadTags() {
     const dropdown = $("tag-dropdown");
     const txtCntnt = $("text");
     const date = get("date");
-    dropdown.innerHTML = '<option value="0" disabled selected hidden>Select a session</option>';
+    dropdown.innerHTML = '<option value="0" disabled hidden>Select a session</option>';
     const tags = isValid("tags") ? get("tags") : {};
 
     if (isValid("tags", true) && typeof tags === 'object') {
@@ -245,12 +246,18 @@ function loadTags() {
         });
         dropdown.classList.remove("hidden");
         txtCntnt.classList.add("hidden");
+
+        const lastTag = dropdown.dataset.lastTag;
+        if (lastTag && tags[lastTag])
+            dropdown.value = lastTag;
     } else {
         console.warn(`No sessions found for date: ${date}`);
         dropdown.classList.add("hidden");
         txtCntnt.classList.remove("hidden");
     }
+    dropdown.options[dropdown.options.length - 1].value;
     sessionTable.classList.add('hidden');
+    renderSessions();
 }
 
 function loadTagsTable(tags) {
@@ -428,9 +435,10 @@ $("add-tag-btn").addEventListener("click", () => {
 $("close-model").addEventListener("click", () => $("tag-model").classList.add("hidden"));
 $("submit-tag").addEventListener("click", () => {
     $("tag-dropdown").value = $("tag-name").value;
-    addSessionType();
+    addNewTag();
 });
 $("tag-dropdown").addEventListener("change", renderSessions);
+$("tag-dropdown").addEventListener("", renderSessions);
 $("next-month").addEventListener("click", () => {
     activeDate.setMonth(activeDate.getMonth() + 1);
     renderCalendar(activeDate);
