@@ -28,44 +28,42 @@ function toMyTime(time) {
     return new Date(time).toLocaleTimeString(('en-US'));
 }
 
-function isValid(key) {
-    const date = getDateKey(activeDate);
-    const tag = $("session-dropdown");
+function isValid(key, isLocal = false) {
+    const date = get("date");
+    const tag = $("tag-dropdown").value;
 
     // Yardımcı Fonksiyonlar
-    const isObjectEmpty = (obj) => !obj || Object.keys(obj).length === 0; // Boş obje kontrolü
     const isDataLoad = () => {
-        const data = allData();
-        return data && !isObjectEmpty(data); // Veri yüklü ve boş değil mi?
+        return isLocal ? !!allData() : !!allMyData;
     };
     const isDateValid = () => {
-        const data = allData();
-        return isDataLoad() && data[date] && !isObjectEmpty(data[date]);
+        const data = isLocal ? allData() : allMyData;
+        return isDataLoad() && !!data[date];
     };
     const isTagsValid = () => {
-        const data = allData();
-        return isDateValid() && data[date]?.tags && !isObjectEmpty(data[date]?.tags);
+        const data = isLocal ? allData() : allMyData;
+        return isDateValid() && !!data[date]?.tags;
     };
     const isTagValid = () => {
-        const data = allData();
-        return isTagsValid() && data[date]?.tags?.[tag];
+        const data = isLocal ? allData() : allMyData;
+        return isTagsValid() && !!data[date]?.tags?.[tag];
     };
     const isSessionValid = () => {
-        const data = allData();
-        return isTagValid() && data[date]?.tags?.[tag]?.sessions && !isObjectEmpty(data[date]?.tags?.[tag]?.sessions);
+        const data = isLocal ? allData() : allMyData;
+        return isTagValid() && !!data[date]?.tags?.[tag]?.sessions;
     };
 
     // Anahtar Kontrolü
     switch (key) {
         case "data":
             return isDataLoad() ? true : false;
-        case "date":
+        case "dateData":
             return isDateValid() ? true : false;
         case "tags":
             return isTagsValid() ? true : false;
-        case "tag":
+        case "tagData":
             return isTagValid() ? true : false;
-        case "session":
+        case "sessions":
             return isSessionValid() ? true : false;
         default:
             return false; // Geçersiz anahtarlar için
@@ -81,70 +79,77 @@ function getEventRemovedNode(element) {
 
 function getDuration(session, isTime, isLast) {
     const now = isLast ? new Date() : new Date(session.end);
-    const start = session.start;
-    const duration = ((now - new Date(start)) / 1000).toFixed(2);
-    const s = Math.floor(duration % 60);
-    const m = Math.floor(duration / 60) % 60;
-    const h = Math.floor(duration / 3600);
+    const start = new Date(session["start"]);
+    const duration = ((now - start) / 1000).toFixed(2);
 
-    return isTime ? duration : `${h}h ${m}m ${s}s`;
+    return isTime ? duration : `${get("h", duration)}h ${get("m", duration)}m ${get("s", duration)}s`;
 }
-
-function getCurrentSession(isAll = false) {
+function get(that, num = 0, isLocal = false) {
     const date = getDateKey(activeDate);
-    const tag = $("session-dropdown").value;
-    const sessions = allData()[date].tags[tag]?.sessions;
-    const lastIndex = Object.keys(sessions).length;
-    const currSession = sessions[lastIndex];
-    return isAll ? sessions : currSession;
+    const tag = $("tag-dropdown").value;
+    const main = isLocal ? allData() : allMyData;
+    let returni;
+    switch (that) {
+        case "date": returni = date; break;
+        case "tag": returni = tag; break;
+        case "dateData": returni = main[date]; break;
+        case "tags": returni = main[date].tags; break;
+        case "tagData": returni = main[date].tags[tag]; break;
+        case "sessions": returni = main[date].tags[tag].sessions; break;
+        case "tagsCount": returni = Object.keys(get("tags")).length; break;
+        case "sessionsCount": returni = Object.keys(get("sessions")).length; break;
+        case "lastSession": returni = get("sessions")[get("sessionsCount")]; break;
+        case "now": returni = new Date().toISOString(); break;
+        case "h": returni = Math.floor(num / 3600); break;
+        case "m": returni = Math.floor(num / 60) % 60; break;
+        case "s": returni = Math.floor(num) % 60; break;
+    }
+    return returni;
 }
+
 function getSessionElapsedTime() {
-    const currSession = getCurrentSession();
+    const currSession = get("lastSession");
     $("duration").innerText = getDuration(currSession, false, true);
 }
+
 function getTotalElapsedTime(wantValue = true) {
-    const sessions = getCurrentSession(true);
-    const length = Object.keys(sessions).length;
+    const sessions = get("sessions");
+    const length = get("sessionsCount");
     let total = 0;
     Object.keys(sessions).forEach((key) => {
         total += parseFloat(sessions[key].duration) || 0;
     });
     const lastSesDuration = parseFloat(getDuration(sessions[length], true, true));
     total += lastSesDuration;
-    const s = Math.floor(total % 60);
-    const m = Math.floor(total / 60) % 60;
-    const h = Math.floor(total / 3600);
-    return wantValue ? total : `${h}h ${m}m ${s}s`;
+    return wantValue ? total : `${get("h", total)}h ${get("m", total)}m ${get("s", total)}s`;
 }
 
-function deleteSession(sessionIndex) {
-    const date = getDateKey(activeDate);
-    const tag = $("session-dropdown").value;
-    const tags = allMyData[date].tags
-    const tagData = tags[tag];
-    if (!tag || !tagData) return;
-
-    sessionIndex = parseInt(sessionIndex, 10); // Convert sessionIndex to decimal if it is not
-    delete tagData.sessions[sessionIndex];
+function deleteSession(indx) {
+    if (!isValid("sessions")) return;
+    const tag = get("tagData", true);
+    indx = parseInt(indx, 10); // Convert indx to decimal if it is not
+    console.log(get("tagData"), indx)
+    console.log(get("tags", true), indx)
+    delete tag.sessions[indx];
 
     // Re-sort sessions
     const sortedTagData = {};
-    Object.keys(tagData.sessions).sort((a, b) => a - b).forEach((key, index) => {
+    Object.keys(tag.sessions).sort((a, b) => a - b).forEach((key, index) => {
         //if a-b is -(a is smaller, so); a is first, otherwise; b is first. If it is 0, no changes
-        sortedTagData[index + 1] = tagData.sessions[key];
+        sortedTagData[index + 1] = tag.sessions[key];
     });
-    tagData.sessions = sortedTagData;
+    tag.sessions = sortedTagData;
     saveData();
-    loadSessionsSummary(tags);
+    loadTagsTable(get("tags"));
     renderSessions();
 }
 
 function selectDate(day) {
     activeDate.setDate(day);
     renderCalendar(activeDate);
-    $("selected-date").textContent = getDateKey(activeDate);
-    loadSessionsTypes();
-    if (isValid("data")) loadSessionsSummary(allData()[getDateKey(activeDate)]?.tags);
+    $("selected-date").textContent = get("date");
+    loadTags();
+    if (isValid("data")) loadTagsTable(allData()[get("date")]?.tags);
 }
 
 /** Render Calendar */
@@ -191,55 +196,52 @@ function renderCalendar(date) {
 /** SESSION SİDE */
 
 function addSessionType() {
-    const modal = $("session-model");
-    const dropdown = $("session-dropdown");
-    const date = getDateKey(activeDate);
-    const tag = $("session-name").value;
-    const checkDuration = $("check-duration").value;
-    const minDuration = $("min-duration").value;
-    const maxDuration = $("max-duration").value;
-    if (!tag || !checkDuration || !minDuration || !maxDuration) {
+    const modal = $("tag-model");
+    const dropdown = $("tag-dropdown");
+    const date = get("date");
+    const tag = $("tag-name").value;
+    const tagCheckInt = $("tag-check-interval").value;
+    const tagMinTime = $("tag-min-time").value;
+    const tagMaxTime = $("tag-max-time").value;
+    if (!tag || !tagCheckInt || !tagMinTime || !tagMaxTime) {
         alert("Please fill all fields");
         return;
     }
 
-    if (!allMyData[date]) {
+    if (!isValid("dateData")) {
         allMyData[date] = { tags: {} };
-        allMyData[date].date = date;
+        get("date").date = date;
     }
-    allMyData[date].tags[tag] = {
-        checkDuration,
-        minDuration,
-        maxDuration,
-        sessions: {}
-    };
-    dropdown.appendChild(new Option(tag, tag));
+    if (!isValid("tag")) {
+        get("tags")[tag] = {
+            tagCheckInt,
+            tagMinTime,
+            tagMaxTime,
+            sessions: {}
+        };
+    }
     $("text").classList.add('hidden');
     dropdown.classList.remove("hidden");
     modal.classList.add("hidden");
     saveData();
-    loadSessionsTypes();
+    loadTags();
 }
 
 /** Load Sessions */
-function loadSessionsTypes() {
+function loadTags() {
     const sessionTable = $("session-log-table");
-    const dropdown = $("session-dropdown");
+    const dropdown = $("tag-dropdown");
     const txtCntnt = $("text");
-    const date = getDateKey(activeDate);
+    const date = get("date");
     dropdown.innerHTML = '<option value="0" disabled selected hidden>Select a session</option>';
-    const tags = allMyData[date]?.tags || {};
+    const tags = isValid("tags") ? get("tags") : {};
 
-    // Correctly check for existence AND for a valid object with sessionTypes property
-    if (allData() && allData()[date] && tags && typeof tags === 'object') {
+    if (isValid("tags", true) && typeof tags === 'object') {
 
         // Populate dropdown
         Object.keys(tags).forEach(tag => {
-            const option = document.createElement("option");
-            option.value = tag;
-            option.textContent = tag;
-            dropdown.appendChild(option);
-            loadSessionsSummary(tags);
+            dropdown.appendChild(new Option(tag, tag));
+            loadTagsTable(tags);
         });
         dropdown.classList.remove("hidden");
         txtCntnt.classList.add("hidden");
@@ -251,56 +253,51 @@ function loadSessionsTypes() {
     sessionTable.classList.add('hidden');
 }
 
-function loadSessionsSummary(tags) {
-    const sessSummaryBody = $("session-summary-body");
-    sessSummaryBody.innerHTML = "";
-    if (!tags) {
-        console.warn("No tag in this date: " + getDateKey(activeDate));
-        sessSummaryBody.classList.add("hidden");
+function loadTagsTable(tags) {
+    const tagTableBody = $("tag-table-body");
+    tagTableBody.innerHTML = "";
+    if (!isValid("tags")) {
+        console.warn("No tag in this date: " + get("date"));
+        tagTableBody.classList.add("hidden");
         return;
     }
     Object.keys(tags).forEach(tag => {
         const sec = parseFloat(tags[tag].totalTime) || 0;
-        const totalSessions = Object.keys(tags[tag].sessions).length;
-        sessSummaryBody.innerHTML += `
+        const totalTags = Object.keys(tags[tag].sessions).length;
+        tagTableBody.innerHTML += `
         <tr>
         <td>${tag}</td>
-        <td>${totalSessions}</td>
-        <td>${Math.floor(sec / 3600)}h ${Math.floor(sec / 60 % 60)}m ${Math.floor(sec % 60)}s</td>
+        <td>${totalTags}</td>
+        <td>${get("h", sec)}h ${get("m", sec)}m ${get("s", sec)}s</td>
         </tr >
         `;
     });
-    sessSummaryBody.classList.remove("hidden");
+    tagTableBody.classList.remove("hidden");
 }
 
 /** Render Sessions */
 function renderSessions() {
     const sessionBody = $("session-log-body");
-    const date = getDateKey(activeDate);
-    const dateData = allMyData[date];
-    const tags = dateData.tags;
+    const tags = get("tags");
     sessionBody.innerHTML = ''; // Clear previous sessions
 
-    if (!allData() || !dateData || !tags) return;
-    const tag = $("session-dropdown").value;
+    if (!isValid("data", true) || !isValid("tags")) return;
+    if (isValid("tagData")) {
+        const sessions = get("sessions");
 
-    if (tag) {
-        if (tags[tag]) {
-            const sessions = tags[tag].sessions;
-
-            // Check for sessions property before accessing it
-            if (sessions && Object.keys(sessions).length > 0) {
-                Object.keys(sessions).forEach((key, index) => {
-                    sessionBody.innerHTML += `
+        // Check for sessions property before accessing it
+        if (sessions && get("sessionsCount") > 0) {
+            Object.keys(sessions).forEach((key, index) => {
+                sessionBody.innerHTML += `
                         <tr>
                             <td>${index + 1}</td>
                             <td>${toMyTime(sessions[key].start)}</td>
                             <td>${sessions[key].end ? toMyTime(sessions[key].end) : ''}</td>
                             <td>${getDuration(sessions[key], false, false)}</td>
                         </tr>`;
-                });
-            }
-            sessionBody.innerHTML += `
+            });
+        }
+        sessionBody.innerHTML += `
                 <tr id="last-row">
                     <td id="indx"></td>
                     <td id="start-time"><button id="start-session">Start</button></td>
@@ -308,50 +305,46 @@ function renderSessions() {
                     <td id="duration">-- -- --  <button id="toggler" class="hidden"><i class="fa-sharp fa-solid fa-eye"></i></button></td>
                 </tr>
                     `;
-            $("session-log-table").classList.remove("hidden");
-        } else {
-            console.error("Error: Invalid session type or missing session data.");
-        }
-    } else {
-        console.log("Waiting for user to select a session type.");
-    }
+        $("session-log-table").classList.remove("hidden");
+    } else console.error("Error: Invalid tag or missing session data.");
 
     // Add event listeners for start and end buttons
-    $("start-session").addEventListener("click", function addNewSession() {
-        const tagData = tags[tag];
-        if (!tag || !tagData) return;
-        const indx = Object.keys(tagData.sessions).length + 1;
-        const now = new Date().toISOString();
-        tagData.sessions[indx] = { start: now };
+    const startButton = getEventRemovedNode("start-session");
+    const endButton = getEventRemovedNode("end-session");
+    startButton.addEventListener("click", function addNewSession() {
+        if (!isValid("tagData")) return;
+        const indx = get("sessionsCount") + 1;
+        get("sessions")[indx] = { start: get("now") };
 
         $("indx").textContent = indx;
         $("start-session").classList.add('hidden');
-        $("start-time").appendChild(document.createTextNode(toMyTime(now)));
+        $("start-time").appendChild(document.createTextNode(toMyTime(get("now"))));
         $("end-session").classList.remove('hidden');
         saveData();
     });
 
-    $("end-session").addEventListener("click", function endSession() {
-        const tagData = tags[tag];
-        if (!tag || !tagData) return;
-        const lastSession = tagData.sessions
-        const indx = Object.keys(lastSession).length;
-        lastSession[indx].end = new Date().toISOString();
-        lastSession[indx].duration = getDuration(lastSession[indx], true, true);
+    endButton.addEventListener("click", function endSession() {
+        if (!isValid("sessions")) return;
+        const tagData = get("tagData");
+        const sessions = get("sessions");
+        const indx = get("sessionsCount");
+        console.log(sessions, indx);
+        sessions[indx].end = new Date().toISOString();
+        sessions[indx].duration = getDuration(sessions[indx], true, true);
 
         let total = 0;
-        Object.keys(tagData.sessions).forEach((key) => {
-            total += parseFloat(tagData.sessions[key].duration) || 0;
+        Object.keys(sessions).forEach((key) => {
+            total += parseFloat(sessions[key].duration) || 0;
         });
         tagData.totalTime = total;
 
         $("start-session").classList.remove('hidden');
-        $("end-time").appendChild(document.createTextNode(toMyTime(lastSession.end)));
-        $("duration").textContent = getDuration(lastSession[indx], false, true);
+        $("end-time").appendChild(document.createTextNode(toMyTime(sessions.end)));
+        $("duration").textContent = getDuration(sessions[indx], false, true);
         $("end-session").classList.add('hidden');
         saveData();
         renderSessions();
-        loadSessionsSummary(tags);
+        loadTagsTable(tags);
     });
 }
 
@@ -412,8 +405,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     } else
                         $("duration").innerText = "--- --- ---";
                 })
-                document.addEventListener("click", function removeContextMenu() {
-                    if (event.target.id !== "last-row-menu") {
+                document.addEventListener("click", function removeContextMenu(event) {
+                    lrowMenu = event.target.closest('#last-row-menu');
+                    if (lrowMenu && lrowMenu.classList.contains("menu")) return;
+                    else {
                         lastRowMenu.classList.add("hidden");
                         document.removeEventListener("click", removeContextMenu);
                     }
@@ -423,19 +418,19 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-$("add-session-type-btn").addEventListener("click", () => {
-    $("session-name").value = '';
-    $("check-duration").value = '';
-    $("min-duration").value = '';
-    $("max-duration").value = '';
-    $("session-model").classList.remove("hidden");
+$("add-tag-btn").addEventListener("click", () => {
+    $("tag-name").value = '';
+    $("tag-check-interval").value = '';
+    $("tag-min-time").value = '';
+    $("tag-max-time").value = '';
+    $("tag-model").classList.remove("hidden");
 });
-$("close-model").addEventListener("click", () => $("session-model").classList.add("hidden"));
-$("submit-session").addEventListener("click", () => {
-    $("session-dropdown").value = $("session-name").value;
+$("close-model").addEventListener("click", () => $("tag-model").classList.add("hidden"));
+$("submit-tag").addEventListener("click", () => {
+    $("tag-dropdown").value = $("tag-name").value;
     addSessionType();
 });
-$("session-dropdown").addEventListener("change", renderSessions);
+$("tag-dropdown").addEventListener("change", renderSessions);
 $("next-month").addEventListener("click", () => {
     activeDate.setMonth(activeDate.getMonth() + 1);
     renderCalendar(activeDate);
@@ -446,7 +441,7 @@ $("prev-month").addEventListener("click", () => {
     renderCalendar(activeDate);
 });
 
-$("new-session-form").addEventListener("submit", function (e) {
+$("new-tag-form").addEventListener("submit", function (e) {
     e.preventDefault();
 });
 

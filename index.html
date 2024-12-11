@@ -22,49 +22,48 @@
         <hr />
         <br />
         <!-- Dropdown and Add Session -->
-        <div class="session-types">
-          <h4 id="text">Create a session type for today:</h4>
-          <select id="session-dropdown" class="hidden">
-            <option value="0">Select Session Type</option>
+        <div class="tags-container">
+          <h4 id="text">Create a Tag for today:</h4>
+          <select id="tag-dropdown" class="hidden">
+            <option value="0">Select Tag</option>
           </select>
-          <button title="Add new session type" id="add-session-type-btn">
+          <button title="Add new tag" id="add-tag-btn">
             +
           </button>
         </div>
-        <div id="session-model" class="modal hidden">
-          <div class="session-content">
-            <h3>Add New Session Type</h3>
-            <form action="" id="new-session-form">
+        <div id="tag-model" class="modal hidden">
+          <div class="tag-model-container">
+            <h3>Add New Tag</h3>
+            <form action="" id="new-tag-form">
               <div class="form-item">
                 <input
                   type="text"
-                  id="session-name"
-                  name="userSession"
+                  id="tag-name"
                   autocomplete="off"
                   required
                 />
-                <label for="session-name">Session Name:</label>
+                <label for="tag-name">Tag Name:</label>
               </div>
               <div class="form-item">
-                <input type="number" id="check-duration" />
-                <label for="session-duration">Duration Check Interval:</label>
+                <input type="number" id="tag-check-interval" />
+                <label for="tag-check-interval">Tag Check Interval:</label>
               </div>
               <div class="form-item">
-                <input type="number" id="min-duration" />
-                <label for="min-duration">Minimum Duration:</label>
+                <input type="number" id="tag-min-time" />
+                <label for="tag-min-time">Minimum Time for Tag:</label>
               </div>
               <div class="form-item">
-                <input type="number" id="max-duration" />
-                <label for="max-duration">Maximum Duration:</label>
+                <input type="number" id="tag-max-time" />
+                <label for="tag-max-time">Maximum Duration for Tag:</label>
               </div>
-              <button type="submit" id="submit-session">Add Session</button>
+              <button type="submit" id="submit-tag">Add Tag</button>
               <button type="button" id="close-model">Cancel</button>
             </form>
           </div>
         </div>
 
         <!-- Session Details -->
-        <div id="session-details">
+        <div id="session-table-container">
           <table id="session-log-table" class="hidden">
             <thead>
               <tr>
@@ -94,20 +93,20 @@
             <div id="calendar-days"></div>
           </div>
         </div>
-        <div class="session-types-summary">
-          <h4>Session's Summary</h4>
-          <div id="session-summary">
+        <div>
+          <h4>Tag Table</h4>
+          <div id="tag-table">
             <table>
               <thead>
                 <tr>
-                  <th>Session Type</th>
+                  <th>Tag</th>
                   <th>Session Count</th>
-                  <th>Total Duration</th>
+                  <th>Tag Time</th>
                 </tr>
               </thead>
-              <tbody id="session-summary-body">
+              <tbody id="tag-table-body">
                 <tr>
-                  <td id="session-type"></td>
+                  <td id="tag-name"></td>
                   <td id="session-count"></td>
                   <td id="session-duration">0</td>
                 </tr>
