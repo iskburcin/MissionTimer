@@ -9,7 +9,7 @@ function $(id) {
 
 let allMyData = allData() || {}; // Load from local storage or initialize empty object
 function allData() {
-    return JSON.parse(localStorage.getItem("allData"));
+    return JSON.parse(localStorage?.getItem("allData"));
 }
 
 function saveData() {
@@ -148,7 +148,7 @@ function selectDate(day) {
     activeDate.setDate(day);
     renderCalendar(activeDate);
     $("selected-date").textContent = get("date");
-    if (isValid("tags")) loadTags();
+    loadTags();
     if (isValid("data")) loadTagsTable(allData()[get("date")]?.tags);
 }
 
@@ -250,14 +250,13 @@ function loadTags() {
         const lastTag = dropdown.dataset.lastTag;
         if (lastTag && tags[lastTag])
             dropdown.value = lastTag;
+        renderSessions();
     } else {
         console.warn(`No sessions found for date: ${date}`);
         dropdown.classList.add("hidden");
+        sessionTable.classList.add('hidden');
         txtCntnt.classList.remove("hidden");
     }
-    dropdown.options[dropdown.options.length - 1].value;
-    sessionTable.classList.add('hidden');
-    renderSessions();
 }
 
 function loadTagsTable(tags) {
@@ -298,7 +297,7 @@ function renderSessions() {
                 sessionBody.innerHTML += `
                         <tr>
                             <td>${index + 1}</td>
-                            <td><textarea class="note-text" rows="3">${sessions[key].note || ""}</textarea></td>
+                            <td><textarea class="note-text" id="note-${index + 1}" rows="3">${sessions[key].note || ""}</textarea></td>
                             <td>${toMyTime(sessions[key].start)}</td>
                             <td>${sessions[key].end ? toMyTime(sessions[key].end) : ''}</td>
                             <td>${getDuration(sessions[key], false, false)}</td>
@@ -364,6 +363,14 @@ function renderSessions() {
         addNewSession();
     })
 
+    const notes = document.querySelectorAll(".note-text");
+    notes.forEach((note, key) => (
+        note.addEventListener("change", () => {
+            const sessions = get("sessions");
+            sessions[key + 1].note = note.value;
+            saveData();
+        })
+    ))
 }
 
 /** EVENT LISTENERS */
