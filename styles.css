@@ -146,7 +146,8 @@ body {
 } */
 
 .hidden {
-    display: none;
+    display: none !important;
+    /*Normalde display:flex olan zıkkımla çalışmıyor. o yüzden important ekle. Ki override yaparak flexin otoritesini devralsın saklasın*/
 }
 
 .tag-model-container {

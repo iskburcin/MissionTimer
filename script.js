@@ -310,8 +310,8 @@ function renderSessions() {
                     <td id="indx"></td>
                     <td id="note-area"><textarea class="note-text" id="session-note" rows="3"></textarea></td>
                     <td id="start-time"><button id="start-session">Start</button></td>
-                    <td id="end-time"><button id="end-session" class="hidden">End</button></td>
-                    <td id="duration">-- -- --  <button id="toggler" class="hidden"><i class="fa-sharp fa-solid fa-eye"></i></button></td>
+                    <td id="end-time"><div style="display:flex;" id="ending-container" class="hidden"><button id="end-session">End</button><button id="cut-session"><span><i class="fa-solid fa-scissors"></i></span></button></div></td>
+                    <td id="duration">--- --- ---</td>
                 </tr>
                     `;
         $("session-log-table").classList.remove("hidden");
@@ -320,7 +320,9 @@ function renderSessions() {
     // Add event listeners for start and end buttons
     const startButton = getEventRemovedNode("start-session");
     const endButton = getEventRemovedNode("end-session");
-    startButton.addEventListener("click", function addNewSession() {
+    const cutButton = getEventRemovedNode("cut-session");
+    startButton.addEventListener("click", addNewSession)
+    function addNewSession() {
         if (!isValid("tagData")) return;
         const indx = get("sessionsCount") + 1;
         get("sessions")[indx] = { start: get("now") };
@@ -328,16 +330,17 @@ function renderSessions() {
         $("indx").textContent = indx;
         $("start-session").classList.add('hidden');
         $("start-time").appendChild(document.createTextNode(toMyTime(get("now"))));
-        $("end-session").classList.remove('hidden');
+        $("ending-container").classList.remove('hidden');
         saveData();
-    });
+    };
 
-    endButton.addEventListener("click", function endSession() {
+    endButton.addEventListener("click", endSession);
+    function endSession() {
         if (!isValid("sessions")) return;
         const tagData = get("tagData");
         const sessions = get("sessions");
         const indx = get("sessionsCount");
-        console.log(sessions, indx);
+
         sessions[indx].end = new Date().toISOString();
         sessions[indx].duration = getDuration(sessions[indx], true, true);
         sessions[indx].note = $("session-note").value || "";
@@ -350,11 +353,16 @@ function renderSessions() {
         $("start-session").classList.remove('hidden');
         $("end-time").appendChild(document.createTextNode(toMyTime(sessions.end)));
         $("duration").textContent = getDuration(sessions[indx], false, true);
-        $("end-session").classList.add('hidden');
+        $("ending-container").classList.add('hidden');
         saveData();
         renderSessions();
         loadTagsTable(tags);
-    });
+    };
+
+    cutButton.addEventListener("click", () => {
+        endSession();
+        addNewSession();
+    })
 
 }
 
