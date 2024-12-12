@@ -100,10 +100,22 @@ body {
     background-color: #640000;
 }
 
-#toggler {
+.note-text {
     /* position: absolute;
-    transform: translateY(-50%);
-    cursor: pointer; */
+    margin: 0px 10px;
+    height: 80px;
+    z-index: 10; */
+    width: 90%;
+    font-size: 1.2em;
+    color: #999;
+    /* Ensure it appears on top of table rows */
+    background-color: #640000;
+    border: 2px solid #9e0000;
+    border-radius: 5px;
+    padding: 5px;
+    box-shadow: 0 2px 5px rgba(44, 44, 44, 0.473);
+    resize: none;
+    cursor: pointer;
 }
 
 .fa-sharp fa-solid fa-eye {
@@ -339,6 +351,8 @@ th {
 }
 
 td {
+    position: relative;
+    /* Make the <td> a positioned container */
     color: #fff;
     font-weight: 400;
     padding: 0.65em 1em;

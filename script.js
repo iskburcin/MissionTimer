@@ -70,8 +70,8 @@ function isValid(key, isLocal = false) {
     }
 }
 
-function getEventRemovedNode(element) {
-    const elem = $(`${element}`);
+function getEventRemovedNode(element, isReady = false) {
+    const elem = isReady ? element : $(`${element}`);
     elem.replaceWith(elem.cloneNode(true));
     const newElem = $(`${element}`);;
     return newElem;
@@ -148,7 +148,7 @@ function selectDate(day) {
     activeDate.setDate(day);
     renderCalendar(activeDate);
     $("selected-date").textContent = get("date");
-    loadTags();
+    if (isValid("tags")) loadTags();
     if (isValid("data")) loadTagsTable(allData()[get("date")]?.tags);
 }
 
@@ -298,6 +298,7 @@ function renderSessions() {
                 sessionBody.innerHTML += `
                         <tr>
                             <td>${index + 1}</td>
+                            <td><textarea class="note-text" rows="3">${sessions[key].note || ""}</textarea></td>
                             <td>${toMyTime(sessions[key].start)}</td>
                             <td>${sessions[key].end ? toMyTime(sessions[key].end) : ''}</td>
                             <td>${getDuration(sessions[key], false, false)}</td>
@@ -307,6 +308,7 @@ function renderSessions() {
         sessionBody.innerHTML += `
                 <tr id="last-row">
                     <td id="indx"></td>
+                    <td id="note-area"><textarea class="note-text" id="session-note" rows="3"></textarea></td>
                     <td id="start-time"><button id="start-session">Start</button></td>
                     <td id="end-time"><button id="end-session" class="hidden">End</button></td>
                     <td id="duration">-- -- --  <button id="toggler" class="hidden"><i class="fa-sharp fa-solid fa-eye"></i></button></td>
@@ -338,7 +340,7 @@ function renderSessions() {
         console.log(sessions, indx);
         sessions[indx].end = new Date().toISOString();
         sessions[indx].duration = getDuration(sessions[indx], true, true);
-
+        sessions[indx].note = $("session-note").value || "";
         let total = 0;
         Object.keys(sessions).forEach((key) => {
             total += parseFloat(sessions[key].duration) || 0;
@@ -353,6 +355,7 @@ function renderSessions() {
         renderSessions();
         loadTagsTable(tags);
     });
+
 }
 
 /** EVENT LISTENERS */
@@ -423,6 +426,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     });
+
+
+
 });
 
 $("add-tag-btn").addEventListener("click", () => {
