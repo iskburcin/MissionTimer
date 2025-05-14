@@ -37,26 +37,107 @@
           <div class="tag-model-container">
             <h3 style="margin: 0 0 30px 5px; font-size: 20px;">Add New Tag</h3>
             <form action="" id="new-tag-form">
-              <div class="form-item">
-                <input
-                  type="text"
-                  id="tag-name"
-                  autocomplete="off"
-                  
-                />
-                <label for="tag-name">Tag Name:</label>
+              <div class="side-by-side"> 
+                <div class="form-item">
+                  <input
+                    type="text"
+                    id="tag-name"
+                    autocomplete="off"
+                    spellcheck="false"
+                  />
+                  <label for="tag-name">Tag Name:</label>
+                </div>
+                <div class="form-item">
+                  <label for="tag-check-interval" class="time-item-label">Break Time Notification Gap (h:m):</label>
+                  <div id="time_wrapper">
+                    <div class="time_input" id="tag-check-interval">
+                      <div class="time-field">
+                        <span class="label lbl-hrs">hours</span>
+                        <input type="number" id="hours" value="0">
+                      </div>
+                      <span class="colon">:</span>
+                      <div class="time-field">
+                        <span class="label lbl-min">minutes</span>
+                        <input type="number" id="minutes" value="00">
+                      </div>
+                    </div>
+                  </div>
+                  <div id="error"></div>
+                </div>
               </div>
-              <div class="form-item">
-                <input type="number" id="tag-check-interval" />
-                <label for="tag-check-interval">Tag Check Interval:</label>
+              <div class="side-by-side">
+                <h3 style="display: flex; align-items: center; width: 70px;">Tag Time Settings: </h3>
+                <div class="form-item">
+                  <label for="tag-min-time">Total Min Time:</label>
+                  <div id="time_wrapper">
+                    <div class="time_input" id="tag-min-time">
+                      <div class="time-field">
+                        <span class="label lbl-hrs">hours</span>
+                        <input type="number" id="hours" value="0">
+                      </div>
+                      <span class="colon">:</span>
+                      <div class="time-field">
+                        <span class="label lbl-min">minutes</span>
+                        <input type="number" id="minutes" value="00">
+                      </div>
+                    </div>
+                  </div>
+                  <div id="error"></div>
+                </div>
+                <div class="form-item">
+                  <label for="">Total Max Time:</label>
+                  <div id="time_wrapper">
+                    <div class="time_input" id="tag-max-time">
+                      <div class="time-field">
+                        <span class="label lbl-hrs">hours</span>
+                        <input type="number" id="hours" value="0">
+                      </div>
+                      <span class="colon">:</span>
+                      <div class="time-field">
+                        <span class="label lbl-min">minutes</span>
+                        <input type="number" id="minutes" value="00">
+                      </div>
+                    </div>
+                  </div>
+                  <div id="error"></div>
+                </div>
               </div>
-              <div class="form-item">
-                <input type="number" id="tag-min-time" />
-                <label for="tag-min-time">Minimum Time for Tag:</label>
-              </div>
-              <div class="form-item">
-                <input type="number" id="tag-max-time" />
-                <label for="tag-max-time">Maximum Duration for Tag:</label>
+              <div class="side-by-side">
+                <h3 style="display: flex; align-items: center; width: 70px;">Session Time Settings: </h3>
+                <div class="form-item">
+                  <label for="session-min-time">Session Min Time:</label>
+                  <div id="time_wrapper">
+                    <div class="time_input" id="session-min-time">
+                      <div class="time-field">
+                        <span class="label lbl-hrs">hours</span>
+                        <input type="number" id="hours" value="0">
+                      </div>
+                      <span class="colon">:</span>
+                      <div class="time-field">
+                        <span class="label lbl-min">minutes</span>
+                        <input type="number" id="minutes" value="00">
+                      </div>
+                    </div>
+                  </div>
+                  <div id="error"></div>
+                </div>
+                <div class="form-item">
+                  <label for="">Session Max Time:</label>
+                  <div id="time_wrapper">
+                    <div class="time_input" id="session-max-time">
+                      <div class="time-field">
+                        <span class="label lbl-hrs">hours</span>
+                        <input type="number" id="hours" value="0">
+                      </div>
+                      <span class="colon">:</span>
+                      <div class="time-field">
+                        <span class="label lbl-min">minutes</span>
+                        <input type="number" id="minutes" value="00">
+                      </div>
+                    </div>
+                  </div>
+                  <div id="error"></div>
+                </div>
               </div>
               <button type="submit" id="submit-tag" style="background-color: var(--light-button);">Add Tag</button>
               <button type="button" id="close-model">Cancel</button>
