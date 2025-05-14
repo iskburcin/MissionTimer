@@ -145,7 +145,7 @@ body {
 .form-item input {
     padding: 10px 0 0 10px;
     margin: 10px 0px;
-    width: 300px;
+    width: 420px;
     height: 50px;
     border: solid 2px var(--dark-button);
     border-radius: 8px;
@@ -377,6 +377,7 @@ td:hover {
 }
 
 .time_input {
+    width: 350px;
     border: 2px solid var(--dark-button);
     border-radius: 8px;
     color: var(--light-button);

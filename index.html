@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Session Measure</title>
-    <!-- <link rel="stylesheet" href="/MissionTimer/styles.css" />
-    <script defer src="/MissionTimer/script.js"></script> -->
-    <link rel="stylesheet" href="/styles.css" />
-    <script defer src="/script.js"></script>
+    <link rel="stylesheet" href="/MissionTimer/styles.css" />
+    <script defer src="/MissionTimer/script.js"></script>
+    <!-- <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/script.js"></script> -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
@@ -48,17 +48,17 @@
                   <label for="tag-name">Tag Name:</label>
                 </div>
                 <div class="form-item">
-                  <label for="tag-check-interval" class="time-item-label">Break Time Notification Gap (h:m):</label>
+                  <label for="break-reminder-time" class="time-item-label">Break Time Reminder Notification Gap (h:m):</label>
                   <div id="time_wrapper">
-                    <div class="time_input" id="tag-check-interval">
+                    <div class="time_input" id="break-reminder-time">
                       <div class="time-field">
                         <span class="label lbl-hrs">hours</span>
-                        <input type="number" id="hours" value="0">
+                        <input type="number" class="hour-input" value="0">
                       </div>
                       <span class="colon">:</span>
                       <div class="time-field">
                         <span class="label lbl-min">minutes</span>
-                        <input type="number" id="minutes" value="00">
+                        <input type="number" class="minute-input" value="00">
                       </div>
                     </div>
                   </div>
@@ -73,12 +73,12 @@
                     <div class="time_input" id="tag-min-time">
                       <div class="time-field">
                         <span class="label lbl-hrs">hours</span>
-                        <input type="number" id="hours" value="0">
+                        <input type="number" class="hour-input" value="0">
                       </div>
                       <span class="colon">:</span>
                       <div class="time-field">
                         <span class="label lbl-min">minutes</span>
-                        <input type="number" id="minutes" value="00">
+                        <input type="number" class="minute-input" value="00">
                       </div>
                     </div>
                   </div>
@@ -90,12 +90,12 @@
                     <div class="time_input" id="tag-max-time">
                       <div class="time-field">
                         <span class="label lbl-hrs">hours</span>
-                        <input type="number" id="hours" value="0">
+                        <input type="number" class="hour-input" value="0">
                       </div>
                       <span class="colon">:</span>
                       <div class="time-field">
                         <span class="label lbl-min">minutes</span>
-                        <input type="number" id="minutes" value="00">
+                        <input type="number" class="minute-input" value="00">
                       </div>
                     </div>
                   </div>
@@ -110,12 +110,12 @@
                     <div class="time_input" id="session-min-time">
                       <div class="time-field">
                         <span class="label lbl-hrs">hours</span>
-                        <input type="number" id="hours" value="0">
+                        <input type="number" class="hour-input" value="0">
                       </div>
                       <span class="colon">:</span>
                       <div class="time-field">
                         <span class="label lbl-min">minutes</span>
-                        <input type="number" id="minutes" value="00">
+                        <input type="number" class="minute-input" value="00">
                       </div>
                     </div>
                   </div>
@@ -127,12 +127,12 @@
                     <div class="time_input" id="session-max-time">
                       <div class="time-field">
                         <span class="label lbl-hrs">hours</span>
-                        <input type="number" id="hours" value="0">
+                        <input type="number" class="hour-input" value="0">
                       </div>
                       <span class="colon">:</span>
                       <div class="time-field">
                         <span class="label lbl-min">minutes</span>
-                        <input type="number" id="minutes" value="00">
+                        <input type="number" class="minute-input" value="00">
                       </div>
                     </div>
                   </div>

@@ -3,8 +3,13 @@ const weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 let activeDate = new Date();
 
 /** Helper Functions */
-function $(id) {
-    return document.getElementById(id);
+function $(selector, isAll = false, from = document) {
+    if (selector.indexOf(0) !== "#" || selector.indexOf(0) !== ".")
+        return from.getElementById(selector);
+    else if (selector.indexOf(0) === "#")
+        return from.querySelector(selector)
+    else if (selector.indexOf(0) === "." && isAll)
+        return from.querySelector(selector)
 }
 
 let allMyData = allData() || {}; // Load from local storage or initialize empty object
@@ -138,6 +143,8 @@ function deleteSession(indx) {
         //if a-b is -(a is smaller, so); a is first, otherwise; b is first. If it is 0, no changes
         sortedTagData[index + 1] = tag.sessions[key];
     });
+
+    //TODO update totalTime in the tag after deleting session
     tag.sessions = sortedTagData;
     saveData();
     loadTagsTable(get("tags"));
@@ -200,11 +207,19 @@ function addNewTag() {
     const dropdown = $("tag-dropdown");
     const date = get("date");
     const tag = $("tag-name").value;
-    const tagCheckInt = $("tag-check-interval").value;
-    const tagMinTime = $("tag-min-time").value;
-    const tagMaxTime = $("tag-max-time").value;
-    if (!tag || !tagCheckInt || !tagMinTime || !tagMaxTime) {
-        alert("Please fill all fields");
+    const timeFields = document.querySelectorAll(".time_input")
+    const hours_mins = {}
+    timeFields.forEach(wrapper => {
+        let hour = parseInt(wrapper.querySelector(".hour-input").value) || 0;
+        let min = parseInt(wrapper.querySelector(".minute-input").value) || 0;
+        hours_mins[wrapper.getAttribute("id")] = {
+            hour: hour,
+            min: min,
+            totalMs: (hour * 60 + min) * 60 * 1000
+        }
+    })
+    if (!tag) {
+        alert("Please fill at least name");
         return;
     }
 
@@ -214,12 +229,11 @@ function addNewTag() {
     }
     if (!isValid("tag")) {
         get("tags")[tag] = {
-            tagCheckInt,
-            tagMinTime,
-            tagMaxTime,
+            times: hours_mins,
             sessions: {}
         };
     }
+    console.log(get("tags")[tag])
     $("text").classList.add('hidden');
     dropdown.classList.remove("hidden");
     dropdown.dataset.lastTag = tag;
@@ -441,16 +455,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     });
-
-
-
 });
 
 $("add-tag-btn").addEventListener("click", () => {
-    $("tag-name").value = '';
-    $("tag-check-interval").value = '';
-    $("tag-min-time").value = '';
-    $("tag-max-time").value = '';
+    // $("tag-name").value = '';
+    // $("tag-check-interval").value = '';
+    // $("tag-min-time").value = '';
+    // $("tag-max-time").value = '';
     $("tag-model").classList.remove("hidden");
 });
 $("close-model").addEventListener("click", () => $("tag-model").classList.add("hidden"));
