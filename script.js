@@ -297,7 +297,7 @@ function renderSessions() {
                 sessionBody.innerHTML += `
                         <tr>
                             <td>${index + 1}</td>
-                            <td><textarea class="note-text" id="note-${index + 1}" rows="3">${sessions[key].note || ""}</textarea></td>
+                            <td><textarea class="note-text" id="note-${index + 1}" rows="3" spellcheck="false" >${sessions[key].note || ""}</textarea></td>
                             <td>${toMyTime(sessions[key].start)}</td>
                             <td>${sessions[key].end ? toMyTime(sessions[key].end) : ''}</td>
                             <td>${getDuration(sessions[key], false, false)}</td>
@@ -307,7 +307,7 @@ function renderSessions() {
         sessionBody.innerHTML += `
                 <tr id="last-row">
                     <td id="indx"></td>
-                    <td id="note-area"><textarea class="note-text" id="session-note" rows="3"></textarea></td>
+                    <td id="note-area" ><textarea spellcheck="false" class="note-text" id="session-note" rows="3"></textarea></td>
                     <td id="start-time"><button id="start-session">Start</button></td>
                     <td id="end-time"><div style="display:flex;" id="ending-container" class="hidden"><button id="end-session">End</button><button id="cut-session"><span><i class="fa-solid fa-scissors"></i></span></button></div></td>
                     <td id="duration">--- --- ---</td>
