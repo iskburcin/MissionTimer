@@ -177,7 +177,10 @@ body {
 
 .form-item input:focus+label {
     color: var(--dark-button);
+}
 
+#tag-adding-error {
+    margin: 5px 0 10px 5px;
 }
 
 /* right click menu */
@@ -366,17 +369,7 @@ td:hover {
     display: flex;
 }
 
-.time-item-label {
-    height: fit-content;
-    position: absolute;
-    top: -12px;
-    left: 0;
-    background: var(--light-theme);
-    padding: 0 4px;
-    z-index: 2;
-}
-
-.time_input {
+.time-input {
     width: 350px;
     border: 2px solid var(--dark-button);
     border-radius: 8px;
@@ -384,7 +377,7 @@ td:hover {
     display: flex;
     justify-content: center;
     align-content: center;
-    padding: 10px;
+    padding: 10px 20px;
     gap: 6px;
     position: relative;
 }
@@ -403,7 +396,7 @@ td:hover {
     padding: 0 4px;
 }
 
-.time_input input {
+.time-input input {
     width: 40px;
     height: 25px;
     padding: 4px;
@@ -420,27 +413,28 @@ input::-webkit-inner-spin-button {
     margin: 0;
 }
 
-.time_input input:focus {
+.time-input input:focus {
     outline: 2px solid var(--light-button);
 }
 
-.time_input input:focus+.label {
+.time-input input:focus+.label {
     color: var(--light-button);
 }
 
-.time_input input.invalid:focus {
+.invalid {
     outline: 2px solid red;
 }
 
-.time_input input.invalid:focus+.label {
+input.invalid:focus {
+    outline: 2px solid red;
+}
+
+input.invalid:focus+.label {
     color: red;
 }
 
-#error {
-    width: 280px;
-    position: relative;
-    top: 170px;
+.error {
+    width: 70px auto;
     margin: 0 auto;
     color: red;
-    visibility: hidden;
 }
