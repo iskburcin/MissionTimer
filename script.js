@@ -31,7 +31,7 @@ function getDateKey(date) {
 }
 
 function toMyTime(time) {
-    return new Date(time).toLocaleTimeString(('en-US'));
+    return new Date(time).toLocaleTimeString(('tr')).substring(0, 5);
 }
 const validTimeInput = (val) => {
     return val.replace(/[^0-9]+/g, ""); // doğru regex
@@ -63,7 +63,7 @@ function validateInput(input, err) {
     const numVal = parseInt(val, 10);
     const unit = input.getAttribute("class").split("-")[0];
 
-    if (val === "" || isNaN(numVal) || numVal < 0 || numVal > max) {
+    if (numVal < 0 || numVal > max) {
         const msg = `It can't be more than ${max} ${unit} or less than zero. Try again!`;
         throwErr(msg, err, input, true);
         return false;
@@ -72,7 +72,6 @@ function validateInput(input, err) {
         return true;
     }
 }
-
 // Bütün inputları topluca kontrol eder
 function validateAllTimeInputs() {
     const timeFields = $(".time-input", true);
@@ -114,21 +113,6 @@ function attachTimeInputListeners() {
         });
     });
 }
-
-attachTimeInputListeners();
-
-// Submit butonuna bastığında input’ları kontrol et
-let count = 0;
-$("#submit-tag").addEventListener("click", () => {
-    if (validateAllTimeInputs()) {
-        $("#tag-adding-error").classList.add("hidden")
-        $("#tag-dropdown").value = $("#tag-name").value;
-        addNewTag();
-    } else {
-        $("#tag-adding-error").classList.remove("hidden")
-        $("#tag-adding-error").innerHTML = `<small>Check time inputs again. Fault count: ${++count} </small>`;
-    }
-});
 
 function isValid(key, isLocal = false) {
     const date = get("date");
@@ -184,7 +168,7 @@ function getDuration(session, isTime, isLast) {
     const start = new Date(session["start"]);
     const duration = ((now - start) / 1000).toFixed(2);
 
-    return isTime ? duration : `${get("h", duration)}h ${get("m", duration)}m ${get("s", duration)}s`;
+    return isTime ? duration : `${get("h", duration)} : ${get("m", duration)}`;
 }
 function get(that, num = 0, isLocal = false) {
     const date = getDateKey(activeDate);
@@ -194,6 +178,7 @@ function get(that, num = 0, isLocal = false) {
     switch (that) {
         case "date": returni = date; break;
         case "tag": returni = tag; break;
+        case "intervalId": returni = sessionInterval; break;
         case "dateData": returni = main[date]; break;
         case "tags": returni = main[date].tags; break;
         case "tagData": returni = main[date].tags[tag]; break;
@@ -204,7 +189,6 @@ function get(that, num = 0, isLocal = false) {
         case "now": returni = new Date().toISOString(); break;
         case "h": returni = Math.floor(num / 3600); break;
         case "m": returni = Math.floor(num / 60) % 60; break;
-        case "s": returni = Math.floor(num) % 60; break;
     }
     return returni;
 }
@@ -223,7 +207,7 @@ function getTotalElapsedTime(wantValue = true) {
     });
     const lastSesDuration = parseFloat(getDuration(sessions[length], true, true));
     total += lastSesDuration;
-    return wantValue ? total : `${get("h", total)}h ${get("m", total)}m ${get("s", total)}s`;
+    return wantValue ? total : `${get("h", total)} : ${get("m", total)}`;
 }
 
 function deleteSession(indx) {
@@ -240,9 +224,12 @@ function deleteSession(indx) {
         //if a-b is -(a is smaller, so); a is first, otherwise; b is first. If it is 0, no changes
         sortedTagData[index + 1] = tag.sessions[key];
     });
-
-    //TODO update totalTime in the tag after deleting session
+    let total = 0;
+    Object.keys(tag.sessions).forEach((key) => {
+        total += parseFloat(tag.sessions[key].duration) || 0;
+    });
     tag.sessions = sortedTagData;
+    tag.totalTime = total;
     saveData();
     loadTagsTable(get("tags"));
     renderSessions();
@@ -313,7 +300,7 @@ function addNewTag(isInvalid) {
         hours_mins[wrapper.getAttribute("id")] = {
             hour: hour,
             min: min,
-            totalMs: (hour * 60 + min) * 60 * 1000
+            totalS: (hour * 60 + min) * 60
         }
     })
     if (!tag) {
@@ -386,11 +373,60 @@ function loadTagsTable(tags) {
         <tr>
         <td>${tag}</td>
         <td>${totalTags}</td>
-        <td>${get("h", sec)}h ${get("m", sec)}m ${get("s", sec)}s</td>
+        <td>${get("h", sec)}: ${get("m", sec)}</td>
         </tr >
         `;
     });
     tagTableBody.classList.remove("hidden");
+}
+
+let sessionInterval;
+function pushNotif() {
+    const tag = get("tagData")
+    const sent = {
+        break: false,
+        sessionMin: false,
+        sessionMax: false,
+        tagMin: false,
+        tagMax: false,
+    }
+    const tagTimes = tag.times
+    const breakTime = tagTimes["break-reminder-time"].totalS || 0;
+    const maxSession = tagTimes["session-max-time"].totalS || 0;
+    const minSession = tagTimes["session-min-time"].totalS || 0;
+    const maxTag = tagTimes["tag-max-time"].totalS || 0;
+    const minTag = tagTimes["tag-min-time"].totalS || 0;
+    if (sessionInterval) clearInterval(sessionInterval);
+
+    sessionInterval = setInterval(() => {
+        console.log("here we are in the interval")
+        const elapsed = getDuration(get("lastSession"), true, true)
+        if (elapsed > breakTime && !sent.break) {
+            console.log("Break Time!! ")
+            notif("Break Time!! ", "Mola Zamanı, çok çalıştın!!");
+            sent.break = true
+        }
+        if (elapsed > minSession && !sent.sessionMin) {
+            console.log("Minimum Session Time Reminder!! ")
+            notif("Minimum Session Time Reminder!! ", "Mola vermediysen şu an tam zamanı :) !!");
+            sent.sessionMin = true
+        }
+        if (getTotalElapsedTime(true) + elapsed > maxSession && !sent.sessionMax) {
+            console.log("Maximum Session Time Reminder!! ")
+            notif("Maximum Session Time Reminder!! ", "Minimumda bile mola vermediysen, bundan sonra durmalısın. Çayınıı koy da gel hadi :) !!");
+            sent.sessionMax = true
+        }
+        if (getTotalElapsedTime(true) + elapsed > minTag && !sent.tagMin) {
+            console.log("Minimum Tag Time Reminder!! ")
+            notif("Minimum Tag Time Reminder!! ", "Iste bitti, bu tag için minimum hedefini tamamladın :) !!");
+            sent.tagMin = true
+        }
+        if (elapsed > maxTag && !sent.tagMax) {
+            console.log("Maximum Tag Time Reminder!! ")
+            notif("Maximum Tag Time Reminder!! ", "Bu gün kendini aştın!!");
+            sent.tagMax = true
+        }
+    }, 1000)
 }
 
 /** Render Sessions */
@@ -422,7 +458,7 @@ function renderSessions() {
                     <td id="note-area" ><textarea spellcheck="false" class="note-text" id="session-note" rows="3"></textarea></td>
                     <td id="start-time"><button id="start-session">Start</button></td>
                     <td id="end-time"><div style="display:flex;" id="ending-container" class="hidden"><button id="end-session">End</button><button id="cut-session"><span><i class="fa-solid fa-scissors"></i></span></button></div></td>
-                    <td id="duration">--- --- ---</td>
+                    <td id="duration">-- : --</td>
                 </tr>
                     `;
         $("#session-log-table").classList.remove("hidden");
@@ -432,7 +468,10 @@ function renderSessions() {
     const startButton = getEventRemovedNode("#start-session");
     const endButton = getEventRemovedNode("#end-session");
     const cutButton = getEventRemovedNode("#cut-session");
-    startButton.addEventListener("click", addNewSession)
+    startButton.addEventListener("click", () => {
+        addNewSession()
+        pushNotif()
+    })
     function addNewSession() {
         if (!isValid("tagData")) return;
         const indx = get("sessionsCount") + 1;
@@ -460,7 +499,10 @@ function renderSessions() {
             total += parseFloat(sessions[key].duration) || 0;
         });
         tagData.totalTime = total;
-
+        if (sessionInterval) {
+            clearInterval(sessionInterval);
+            sessionInterval = null;
+        }
         $("#start-session").classList.remove('hidden');
         $("#end-time").appendChild(document.createTextNode(toMyTime(sessions.end)));
         $("#duration").textContent = getDuration(sessions[indx], false, true);
@@ -473,6 +515,7 @@ function renderSessions() {
     cutButton.addEventListener("click", () => {
         endSession();
         addNewSession();
+        pushNotif()
     })
 
     const notes = $(".note-text", true);
@@ -483,6 +526,25 @@ function renderSessions() {
             saveData();
         })
     ))
+}
+
+/** Notification Handler */
+const notif = (title, body) => {
+    return new Notification(title, {
+        body: body
+    })
+}
+function sendNotification() {
+    if (Notification.permission === 'granted') {
+        pageNotif = notif("Hey welcome", `you granted the notification`)
+        console.log("noftification granted: ", pageNotif)
+    } else if (perm !== 'denied') {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                pageNotif = notif("Hey welcome", `you granted the notification`)
+            }
+        });
+    }
 }
 
 /** EVENT LISTENERS */
@@ -533,14 +595,14 @@ document.addEventListener("DOMContentLoaded", function () {
                         getSessionElapsedTime();
                         totalTime.checked = false;
                     } else
-                        $("#duration").innerText = "--- --- ---";
+                        $("#duration").innerText = "-- : --";
                 });
                 totalTime.addEventListener("change", (e) => {
                     if (totalTime.checked) {
                         $("#duration").innerText = getTotalElapsedTime(false);
                         sessionTime.checked = false;
                     } else
-                        $("#duration").innerText = "--- --- ---";
+                        $("#duration").innerText = "-- : --";
                 })
                 document.addEventListener("click", function removeContextMenu(event) {
                     lrowMenu = event.target.closest('#last-row-menu');
@@ -580,7 +642,18 @@ $("#new-tag-form").addEventListener("submit", function (e) {
     e.preventDefault();
 });
 
+$("#submit-tag").addEventListener("click", () => {
+    if (validateAllTimeInputs()) {
+        $("#tag-adding-error").classList.add("hidden")
+        $("#tag-dropdown").value = $("#tag-name").value;
+        addNewTag();
+    } else {
+        $("#tag-adding-error").classList.remove("hidden")
+        $("#tag-adding-error").innerHTML = `<small>Check time inputs again. Fault count: ${++count} </small>`;
+    }
+});
 /** Initial Rendering */
+attachTimeInputListeners();
 renderWeekdays();
 renderCalendar(activeDate);
 selectDate(activeDate.getDate());

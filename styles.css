@@ -309,6 +309,8 @@ table {
     background: var(--light-theme);
     border-radius: 5px;
     /** doesnt stickt each other rows and columns*/
+    justify-content: center;
+    text-align: center;
     border-collapse: collapse;
     margin: 10px 0;
     width: 100%;
