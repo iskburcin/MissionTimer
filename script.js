@@ -535,7 +535,7 @@ function sendNotification() {
     if (Notification.permission === 'granted') {
         pageNotif = notif("Hey welcome", `you granted the notification`)
         console.log("noftification granted: ", pageNotif)
-    } else if (perm !== 'denied') {
+    } else {
         Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
                 pageNotif = notif("Hey welcome", `you granted the notification`)
