@@ -621,6 +621,7 @@ $("#add-tag-btn").addEventListener("click", () => {
     // $("#tag-min-time").value = '';
     // $("#tag-max-time").value = '';
     $("#tag-model").classList.remove("hidden");
+    sendNotification()
 });
 $("#close-model").addEventListener("click", () => $("#tag-model").classList.add("hidden"));
 $("#tag-dropdown").addEventListener("change", renderSessions);
