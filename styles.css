@@ -181,6 +181,7 @@ body {
 
 #tag-adding-error {
     margin: 5px 0 10px 5px;
+    display: block;
 }
 
 /* right click menu */

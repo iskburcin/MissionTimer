@@ -373,7 +373,7 @@ function loadTagsTable(tags) {
         <tr>
         <td>${tag}</td>
         <td>${totalTags}</td>
-        <td>${get("h", sec)}: ${get("m", sec)}</td>
+        <td>${get("h", sec)} : ${get("m", sec)}</td>
         </tr >
         `;
     });
@@ -402,27 +402,22 @@ function pushNotif() {
         console.log("here we are in the interval")
         const elapsed = getDuration(get("lastSession"), true, true)
         if (elapsed > breakTime && !sent.break) {
-            console.log("Break Time!! ")
             notif("Break Time!! ", "Mola Zamanı, çok çalıştın!!");
             sent.break = true
         }
         if (elapsed > minSession && !sent.sessionMin) {
-            console.log("Minimum Session Time Reminder!! ")
             notif("Minimum Session Time Reminder!! ", "Mola vermediysen şu an tam zamanı :) !!");
             sent.sessionMin = true
         }
         if (getTotalElapsedTime(true) + elapsed > maxSession && !sent.sessionMax) {
-            console.log("Maximum Session Time Reminder!! ")
             notif("Maximum Session Time Reminder!! ", "Minimumda bile mola vermediysen, bundan sonra durmalısın. Çayınıı koy da gel hadi :) !!");
             sent.sessionMax = true
         }
         if (getTotalElapsedTime(true) + elapsed > minTag && !sent.tagMin) {
-            console.log("Minimum Tag Time Reminder!! ")
             notif("Minimum Tag Time Reminder!! ", "Iste bitti, bu tag için minimum hedefini tamamladın :) !!");
             sent.tagMin = true
         }
         if (elapsed > maxTag && !sent.tagMax) {
-            console.log("Maximum Tag Time Reminder!! ")
             notif("Maximum Tag Time Reminder!! ", "Bu gün kendini aştın!!");
             sent.tagMax = true
         }
@@ -457,7 +452,9 @@ function renderSessions() {
                     <td id="indx"></td>
                     <td id="note-area" ><textarea spellcheck="false" class="note-text" id="session-note" rows="3"></textarea></td>
                     <td id="start-time"><button id="start-session">Start</button></td>
-                    <td id="end-time"><div style="display:flex;" id="ending-container" class="hidden"><button id="end-session">End</button><button id="cut-session"><span><i class="fa-solid fa-scissors"></i></span></button></div></td>
+                    <td id="end-time"><div style="display:flex;" id="ending-container" class="hidden"><button id="end-session">End</button><button id="cut-session"><span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-scissors" viewBox="0 0 16 16">
+  <path d="M3.5 3.5c-.614-.884-.074-1.962.858-2.5L8 7.226 11.642 1c.932.538 1.472 1.616.858 2.5L8.81 8.61l1.556 2.661a2.5 2.5 0 1 1-.794.637L8 9.73l-1.572 2.177a2.5 2.5 0 1 1-.794-.637L7.19 8.61zm2.5 10a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0m7 0a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0"/>
+</svg></span></button></div></td>
                     <td id="duration">-- : --</td>
                 </tr>
                     `;
@@ -642,6 +639,7 @@ $("#new-tag-form").addEventListener("submit", function (e) {
     e.preventDefault();
 });
 
+let count = 0
 $("#submit-tag").addEventListener("click", () => {
     if (validateAllTimeInputs()) {
         $("#tag-adding-error").classList.add("hidden")
